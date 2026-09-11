@@ -1,6 +1,14 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from .models import Servant
+
+def detail_view(request, collection_no):
+    servant = get_object_or_404(Servant, collection_no=collection_no)
+    
+    context = {
+        'servant': servant,
+    }
+    return render(request, 'servants/detail.html', context)
 
 def roster_view(request):
     query = request.GET.get('search', '').strip()

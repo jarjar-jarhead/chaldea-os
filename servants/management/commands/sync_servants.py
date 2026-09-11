@@ -28,13 +28,40 @@ class Command(BaseCommand):
         # =======================================================
         for item in servants_data:
             collection_no = item.get("collectionNo", 0)
-
-            # we get them servants only, no npc and beast with no collection ID
             if collection_no <= 0:
                 continue
 
-            # get the radar stats of servants
-            raw_params = item.get("profile", {}).get("stats", {}) or {}    
+            raw_params = item.get("profile", {}).get("stats", {}) or {}
+
+            # 1. Deck Parser (Converts ['quick', 'arts', 'arts', 'buster', 'buster'] -> 'QAABB')
+            cards_list = item.get("cards", [])
+            deck_code = "".join([c[0].upper() for c in cards_list if c]) or "QAABB"
+
+            # 2. Noble Phantasm Parser (Extracts the primary active NP)
+            noble_phantasms = item.get("noblePhantasms", [])
+            active_np = noble_phantasms[0] if noble_phantasms else {}
+            np_name = active_np.get("name", "Unknown Phantasm")
+            np_card = active_np.get("card", "Buster").capitalize()
+            np_type = active_np.get("effectFlags", [])
+            # Fallback for NP targeting display
+            np_type_label = active_np.get("target", "Support")
+            if "aoe" in str(active_np).lower():
+                np_type_label = "Anti-Army (AoE)"
+            elif "single" in str(active_np).lower():
+                np_type_label = "Anti-Unit (ST)"
+
+            # 3. Hidden Attribute & Alignment
+            attribute = item.get("attribute", "Earth").capitalize()
+            raw_traits = item.get("traits", [])
+            # In Atlas Academy, alignment is often in profile or traits; fallback clean string
+            alignment = f"{attribute} Attribute"
+
+            # 4. Ascension Art Stages (charaGraph CDN images)
+            graphs = item.get("extraAssets", {}).get("charaGraph", {}).get("ascension", {}) or {}
+            stage1 = graphs.get("1") or item.get("extraAssets", {}).get("faces", {}).get("1")
+            stage2 = graphs.get("2") or stage1
+            stage3 = graphs.get("3") or stage2
+            stage4 = graphs.get("4") or stage3
 
             defaults = {
                 "name": item.get("name", "Unknown Spirit Origin"),
@@ -46,7 +73,15 @@ class Command(BaseCommand):
                 "hp_base": item.get("hpBase", 0),
                 "hp_max": item.get("hpMax", 0),
                 
-                # Radar Parameters (Rank letters: A, B+, EX, etc.)
+                # New Attributes
+                "attribute": attribute,
+                "alignment": alignment,
+                "deck": deck_code,
+                "np_name": np_name,
+                "np_card": np_card,
+                "np_type": np_type_label,
+
+                # Parameters
                 "param_str": str(raw_params.get("strength", "E")),
                 "param_end": str(raw_params.get("endurance", "E")),
                 "param_agi": str(raw_params.get("agility", "E")),
@@ -54,15 +89,17 @@ class Command(BaseCommand):
                 "param_lck": str(raw_params.get("luck", "E")),
                 "param_np": str(raw_params.get("np", "E")),
                 
-                # Visual portrait from CDN
-                "face_url": item.get("extraAssets", {}).get("faces", {}).get("1", None)
-
+                # Visuals
+                "face_url": item.get("extraAssets", {}).get("faces", {}).get("1", None),
+                "art_stage1": stage1,
+                "art_stage2": stage2,
+                "art_stage3": stage3,
+                "art_stage4": stage4,
             }
 
-            # Avoids duplicate row errors if run more than once
             obj, created = Servant.objects.update_or_create(
-                collection_no = collection_no,
-                defaults = defaults
+                collection_no=collection_no,
+                defaults=defaults
             )
 
             if created:

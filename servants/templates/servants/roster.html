@@ -17,12 +17,10 @@
                 <p class="text-xs text-slate-400 mt-0.5">Records Index: Database Active</p>
             </div>
 
-            <!-- Keep active filters inside the form submission -->
             {% if selected_class %}<input type="hidden" name="class" value="{{ selected_class }}">{% endif %}
             {% if selected_rarity %}<input type="hidden" name="rarity" value="{{ selected_rarity }}">{% endif %}
 
             <div class="flex flex-wrap sm:flex-nowrap gap-2 items-center">
-                <!-- Search Input -->
                 <input 
                     type="text" 
                     name="search" 
@@ -31,7 +29,6 @@
                     class="w-full sm:w-56 bg-[#0a0e17] border border-chaldea-border px-3 py-2 text-xs rounded text-slate-200 focus:outline-none focus:border-chaldea-cyan font-mono"
                 >
 
-                <!-- Sort Selector -->
                 <select 
                     name="sort" 
                     onchange="this.form.submit()" 
@@ -53,27 +50,27 @@
             </div>
         </form>
 
-        <!-- Secondary Controls: Class + Rarity Pills -->
-        <div class="pt-2 border-t border-chaldea-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-tech">
+        <!-- Secondary Controls: Class + Rarity Pills (Wrapped) -->
+        <div class="pt-2 border-t border-chaldea-border/50 flex flex-col gap-3 text-xs font-tech">
             
             <!-- Class Filters -->
-            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
-                <span class="text-slate-500 mr-1">CLASS:</span>
+            <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-slate-500 mr-1 shrink-0">CLASS:</span>
                 <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if selected_sort %}sort={{ selected_sort }}&{% endif %}{% if selected_rarity %}rarity={{ selected_rarity }}{% endif %}" 
-                   class="px-2 py-0.5 rounded border whitespace-nowrap transition {% if not selected_class %}border-chaldea-cyan bg-chaldea-cyan/20 text-chaldea-cyan{% else %}border-chaldea-border text-slate-400 hover:border-slate-500{% endif %}">
+                   class="px-2 py-0.5 rounded border transition {% if not selected_class %}border-chaldea-cyan bg-chaldea-cyan/20 text-chaldea-cyan{% else %}border-chaldea-border text-slate-400 hover:border-slate-500{% endif %}">
                    ALL
                 </a>
                 {% for c in classes %}
                     <a href="?class={{ c }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_sort %}&sort={{ selected_sort }}{% endif %}{% if selected_rarity %}&rarity={{ selected_rarity }}{% endif %}" 
-                       class="px-2 py-0.5 rounded border whitespace-nowrap transition {% if selected_class == c %}border-chaldea-cyan bg-chaldea-cyan/20 text-chaldea-cyan{% else %}border-chaldea-border text-slate-400 hover:border-slate-500{% endif %}">
+                       class="px-2 py-0.5 rounded border transition {% if selected_class == c %}border-chaldea-cyan bg-chaldea-cyan/20 text-chaldea-cyan{% else %}border-chaldea-border text-slate-400 hover:border-slate-500{% endif %}">
                        {{ c|upper }}
                     </a>
                 {% endfor %}
             </div>
 
             <!-- Rarity Stars Filter -->
-            <div class="flex items-center gap-1.5 shrink-0">
-                <span class="text-slate-500 mr-1">TIER:</span>
+            <div class="flex flex-wrap items-center gap-1.5 pt-1 border-t border-chaldea-border/30">
+                <span class="text-slate-500 mr-1 shrink-0">TIER:</span>
                 <a href="?{% if search_query %}search={{ search_query }}&{% endif %}{% if selected_sort %}sort={{ selected_sort }}&{% endif %}{% if selected_class %}class={{ selected_class }}{% endif %}" 
                    class="px-2 py-0.5 rounded border transition {% if not selected_rarity %}border-chaldea-amber bg-chaldea-amber/20 text-chaldea-amber{% else %}border-chaldea-border text-slate-400 hover:border-slate-500{% endif %}">
                    ALL
@@ -85,6 +82,7 @@
                     </a>
                 {% endfor %}
             </div>
+
         </div>
 
     </div>
@@ -92,7 +90,7 @@
     <!-- Responsive Card Grid -->
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
         {% for servant in page_obj %}
-        <div class="group flex flex-col border border-chaldea-border bg-chaldea-surface/60 rounded-lg overflow-hidden hover:border-chaldea-cyan/60 hover:shadow-[0_0_12px_rgba(0,229,255,0.15)] transition duration-200">
+        <a href="{% url 'servants:detail' servant.collection_no %}" class="group flex flex-col border border-chaldea-border bg-chaldea-surface/60 rounded-lg overflow-hidden hover:border-chaldea-cyan/60 hover:shadow-[0_0_12px_rgba(0,229,255,0.15)] transition duration-200">
             <!-- Portrait Frame -->
             <div class="relative w-full aspect-square bg-black/40 overflow-hidden">
                 {% if servant.face_url %}
@@ -128,7 +126,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </a>
         {% empty %}
         <div class="col-span-full text-center py-16 border border-dashed border-chaldea-border rounded-lg">
             <p class="font-tech text-sm text-slate-500">// NO MATCHING SPIRIT ORIGIN LOCATED</p>
@@ -136,7 +134,7 @@
         {% endfor %}
     </div>
 
-    <!-- Pagination Controls (Preserves Sort, Rarity, Class, Search) -->
+    <!-- Pagination Controls -->
     {% if page_obj.has_other_pages %}
     <div class="flex justify-center items-center gap-2 pt-4 pb-8 font-tech text-xs">
         {% if page_obj.has_previous %}

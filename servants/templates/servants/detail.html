@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}#{{ servant.collection_no|stringformat:"03d" }} {{ servant.name }} // CHALDEA OS{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-5xl mx-auto">
+
+    <!-- Top Action Bar -->
+    <div class="flex items-center justify-between font-tech text-xs">
+        <a href="{% url 'servants:roster' %}" class="text-slate-400 hover:text-chaldea-cyan transition flex items-center gap-1.5">
+            &larr; BACK TO ROSTER
+        </a>
+        <div class="flex items-center gap-3">
+            <a href="/compare/?servant_a={{ servant.collection_no }}" class="px-3 py-1 bg-chaldea-cyan/10 border border-chaldea-cyan text-chaldea-cyan rounded hover:bg-chaldea-cyan hover:text-black transition">
+                + PIN TO COMPARE
+            </a>
+            <span class="text-slate-500 hidden sm:inline">ORIGIN ID: {{ servant.id }}</span>
+        </div>
+    </div>
+
+    <!-- Main Dossier Card -->
+    <div class="border border-chaldea-border bg-chaldea-surface/50 rounded-xl p-5 md:p-6 backdrop-blur-md">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+            
+            <!-- Left Panel: Ascension Art Switcher -->
+            <div class="md:col-span-5 flex flex-col items-center">
+                <div class="relative w-full max-w-[280px] aspect-[3/4] bg-black/60 rounded-lg overflow-hidden border border-chaldea-border shadow-[0_0_20px_rgba(0,0,0,0.6)]">
+                    <img id="ascensionArt" src="{{ servant.art_stage1|default:servant.face_url }}" alt="{{ servant.name }}" class="w-full h-full object-cover transition-opacity duration-200">
+                    
+                    <div class="absolute top-2 left-2 font-tech text-xs bg-black/80 border border-chaldea-border px-2 py-0.5 rounded text-chaldea-cyan">
+                        #{{ servant.collection_no|stringformat:"03d" }}
+                    </div>
+                    <div class="absolute bottom-2 right-2 text-sm text-chaldea-amber font-mono drop-shadow">
+                        {% for i in "x"|rjust:servant.rarity %}★{% endfor %}
+                    </div>
+                </div>
+
+                <!-- Stage Switcher Buttons -->
+                <div class="flex items-center gap-1.5 mt-3 font-tech text-[11px]">
+                    <span class="text-slate-500 mr-1 text-[10px]">STAGE:</span>
+                    <button type="button" onclick="setArt('{{ servant.art_stage1 }}', this)" class="stage-btn px-2 py-0.5 rounded border border-chaldea-cyan bg-chaldea-cyan/20 text-chaldea-cyan">1</button>
+                    <button type="button" onclick="setArt('{{ servant.art_stage2 }}', this)" class="stage-btn px-2 py-0.5 rounded border border-chaldea-border text-slate-400 hover:border-slate-500">2</button>
+                    <button type="button" onclick="setArt('{{ servant.art_stage3 }}', this)" class="stage-btn px-2 py-0.5 rounded border border-chaldea-border text-slate-400 hover:border-slate-500">3</button>
+                    <button type="button" onclick="setArt('{{ servant.art_stage4 }}', this)" class="stage-btn px-2 py-0.5 rounded border border-chaldea-border text-slate-400 hover:border-slate-500">FINAL</button>
+                </div>
+            </div>
+
+            <!-- Right Panel: Identification & Radar Chart -->
+            <div class="md:col-span-7 flex flex-col justify-between space-y-4">
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="font-tech text-xs uppercase tracking-widest text-chaldea-cyan">{{ servant.class_name }} CLASS</span>
+                        <span class="font-tech text-[10px] text-slate-400 border border-chaldea-border px-2 py-0.5 rounded bg-[#0a0e17]">{{ servant.attribute }}</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-bold text-slate-100 mt-1">{{ servant.name }}</h1>
+                    
+                    <!-- Command Deck Visualizer -->
+                    <div class="flex items-center gap-1.5 mt-3">
+                        <span class="font-tech text-[10px] text-slate-500 mr-1">DECK:</span>
+                        {% for card in servant.deck %}
+                            {% if card == 'B' %}
+                                <span class="w-6 h-6 flex items-center justify-center font-tech font-bold text-xs rounded bg-red-950/80 border border-red-500 text-red-400" title="Buster">B</span>
+                            {% elif card == 'A' %}
+                                <span class="w-6 h-6 flex items-center justify-center font-tech font-bold text-xs rounded bg-blue-950/80 border border-blue-500 text-blue-400" title="Arts">A</span>
+                            {% elif card == 'Q' %}
+                                <span class="w-6 h-6 flex items-center justify-center font-tech font-bold text-xs rounded bg-emerald-950/80 border border-emerald-500 text-emerald-400" title="Quick">Q</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="flex flex-wrap gap-2 mt-3 font-tech text-xs">
+                        <span class="px-2.5 py-1 rounded bg-[#0a0e17] border border-chaldea-border text-slate-300">
+                            <strong class="text-slate-500">MAX ATK:</strong> {{ servant.atk_max }}
+                        </span>
+                        <span class="px-2.5 py-1 rounded bg-[#0a0e17] border border-chaldea-border text-slate-300">
+                            <strong class="text-slate-500">MAX HP:</strong> {{ servant.hp_max }}
+                        </span>
+                        <span class="px-2.5 py-1 rounded bg-[#0a0e17] border border-chaldea-border text-slate-300">
+                            <strong class="text-slate-500">COST:</strong> {{ servant.cost }}
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Radar Canvas -->
+                <div class="relative w-full max-w-[300px] mx-auto py-1">
+                    <canvas id="parameterRadarCanvas"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Noble Phantasm Highlight Card -->
+    <div class="border border-chaldea-border bg-chaldea-surface/40 rounded-lg p-4 font-tech">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-chaldea-border/50 pb-2">
+            <span class="text-xs text-chaldea-cyan font-bold tracking-wider">// NOBLE PHANTASM SPECIFICATION</span>
+            <span class="text-[10px] text-slate-400">{{ servant.np_type }}</span>
+        </div>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3">
+            <div>
+                <h4 class="font-sans font-bold text-slate-200 text-sm md:text-base">{{ servant.np_name }}</h4>
+                <p class="text-xs text-slate-500">Active Saint Graph Armament</p>
+            </div>
+            <div>
+                {% if servant.np_card == 'Buster' %}
+                    <span class="px-3 py-1 rounded text-xs font-bold bg-red-950/80 border border-red-500 text-red-400">BUSTER NP</span>
+                {% elif servant.np_card == 'Arts' %}
+                    <span class="px-3 py-1 rounded text-xs font-bold bg-blue-950/80 border border-blue-500 text-blue-400">ARTS NP</span>
+                {% else %}
+                    <span class="px-3 py-1 rounded text-xs font-bold bg-emerald-950/80 border border-emerald-500 text-emerald-400">QUICK NP</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabs Header -->
+    <div class="border-b border-chaldea-border flex gap-2 font-tech text-xs">
+        <button type="button" onclick="switchTab('stats')" id="tab-btn-stats" class="tab-btn px-4 py-2.5 border-b-2 border-chaldea-cyan text-chaldea-cyan transition">
+            [ PARAMETERS & RANKS ]
+        </button>
+        <button type="button" onclick="switchTab('lore')" id="tab-btn-lore" class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
+            [ ARCHIVAL LORE ]
+        </button>
+        <button type="button" onclick="switchTab('tips')" id="tab-btn-tips" class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
+            [ TACTICAL ANALYSIS ]
+        </button>
+    </div>
+
+    <!-- Tab 1: Stats & Ranks -->
+    <div id="tab-content-stats" class="tab-pane space-y-4">
+        <div class="border border-chaldea-border bg-chaldea-surface/30 p-4 rounded-lg">
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 font-tech text-xs text-center">
+                <div class="p-2 bg-[#0a0e17] border border-chaldea-border rounded">
+                    <div class="text-slate-500 text-[10px]">STRENGTH</div>
+                    <div class="text-chaldea-cyan font-bold text-sm mt-0.5">{{ servant.param_str }}</div>
+                </div>
+                <div class="p-2 bg-[#0a0e17] border border-chaldea-border rounded">
+                    <div class="text-slate-500 text-[10px]">ENDURANCE</div>
+                    <div class="text-chaldea-cyan font-bold text-sm mt-0.5">{{ servant.param_end }}</div>
+                </div>
+                <div class="p-2 bg-[#0a0e17] border border-chaldea-border rounded">
+                    <div class="text-slate-500 text-[10px]">AGILITY</div>
+                    <div class="text-chaldea-cyan font-bold text-sm mt-0.5">{{ servant.param_agi }}</div>
+                </div>
+                <div class="p-2 bg-[#0a0e17] border border-chaldea-border rounded">
+                    <div class="text-slate-500 text-[10px]">MANA</div>
+                    <div class="text-chaldea-cyan font-bold text-sm mt-0.5">{{ servant.param_mna }}</div>
+                </div>
+                <div class="p-2 bg-[#0a0e17] border border-chaldea-border rounded">
+                    <div class="text-slate-500 text-[10px]">LUCK</div>
+                    <div class="text-chaldea-cyan font-bold text-sm mt-0.5">{{ servant.param_lck }}</div>
+                </div>
+                <div class="p-2 bg-[#0a0e17] border border-chaldea-border rounded">
+                    <div class="text-chaldea-cyan text-[10px]">N. PHANTASM</div>
+                    <div class="text-chaldea-cyan font-bold text-sm mt-0.5">{{ servant.param_np }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 2: Lore -->
+    <div id="tab-content-lore" class="tab-pane hidden space-y-4">
+        <div class="border border-chaldea-border bg-chaldea-surface/30 p-5 rounded-lg font-sans text-sm text-slate-300 leading-relaxed space-y-3">
+            <h3 class="font-tech text-xs uppercase tracking-wider text-chaldea-cyan">// SPIRIT ORIGIN PROFILE</h3>
+            <p>
+                Designation: <strong class="text-slate-100">{{ servant.name }}</strong> is summoned under the 
+                <strong class="text-chaldea-cyan">{{ servant.class_name }}</strong> container. 
+                Saint Graph registered under Origin ID #{{ servant.collection_no|stringformat:"03d" }}.
+            </p>
+            <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded font-tech text-xs text-slate-400">
+                <span class="text-slate-500">ATTRIBUTION:</span> {{ servant.attribute }} | <span class="text-slate-500">ALIGNMENT:</span> {{ servant.alignment }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab 3: Tactical Tips -->
+    <div id="tab-content-tips" class="tab-pane hidden space-y-4">
+        <div class="border border-chaldea-border bg-chaldea-surface/30 p-5 rounded-lg text-sm text-slate-300 space-y-3">
+            <h3 class="font-tech text-xs uppercase tracking-wider text-chaldea-cyan">// TACTICAL ANALYSIS</h3>
+            <div class="space-y-2 text-xs">
+                <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded flex items-start gap-3">
+                    <span class="text-chaldea-amber font-tech font-bold">[DECK]</span>
+                    <div>
+                        <strong class="text-slate-200">Deck Distribution:</strong> 
+                        Configured with <span class="font-mono text-chaldea-cyan">{{ servant.deck }}</span>.
+                        {% if 'AAA' in servant.deck %}
+                            Triple-Arts deck allows rapid NP gauge refund and frequent loops with Arts supports.
+                        {% elif 'BBB' in servant.deck %}
+                            Triple-Buster configuration enables high raw card face damage and Buster Brave chains.
+                        {% elif 'QQQ' in servant.deck %}
+                            Triple-Quick setup specializes in critical star generation and burst turns.
+                        {% else %}
+                            Hybrid card distribution providing flexible chain options.
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    function setArt(url, btn) {
+        if (!url) return;
+        const img = document.getElementById('ascensionArt');
+        img.style.opacity = '0.3';
+        setTimeout(() => {
+            img.src = url;
+            img.style.opacity = '1';
+        }, 150);
+
+        document.querySelectorAll('.stage-btn').forEach(b => {
+            b.classList.remove('border-chaldea-cyan', 'bg-chaldea-cyan/20', 'text-chaldea-cyan');
+            b.classList.add('border-chaldea-border', 'text-slate-400');
+        });
+        btn.classList.remove('border-chaldea-border', 'text-slate-400');
+        btn.classList.add('border-chaldea-cyan', 'bg-chaldea-cyan/20', 'text-chaldea-cyan');
+    }
+
+    function switchTab(tabKey) {
+        document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(el => {
+            el.classList.remove('border-chaldea-cyan', 'text-chaldea-cyan');
+            el.classList.add('border-transparent', 'text-slate-400');
+        });
+
+        document.getElementById('tab-content-' + tabKey).classList.remove('hidden');
+        const activeBtn = document.getElementById('tab-btn-' + tabKey);
+        activeBtn.classList.remove('border-transparent', 'text-slate-400');
+        activeBtn.classList.add('border-chaldea-cyan', 'text-chaldea-cyan');
+    }
+
+        const ctx = document.getElementById('parameterRadarCanvas').getContext('2d');
+        const parameterData = JSON.parse(document.getElementById('servant-params-data').textContent);
+
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['STR', 'END', 'AGI', 'MNA', 'LCK', 'NP'],
+            datasets: [{
+                label: 'Parameter Rank',
+                data: parameterData,
+                backgroundColor: 'rgba(0, 229, 255, 0.25)',
+                borderColor: '#00e5ff',
+                borderWidth: 2,
+                pointBackgroundColor: '#00e5ff',
+                pointBorderColor: '#ffffff',
+                pointRadius: 3,
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                r: {
+                    min: 0,
+                    max: 100,
+                    ticks: { display: false, stepSize: 20 },
+                    grid: { color: 'rgba(30, 41, 59, 0.8)' },
+                    angleLines: { color: 'rgba(30, 41, 59, 0.8)' },
+                    pointLabels: {
+                        color: '#94a3b8',
+                        font: { family: 'JetBrains Mono', size: 10, weight: 'bold' }
+                    }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+</script>
+{% endblock %}
