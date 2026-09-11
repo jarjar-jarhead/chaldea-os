@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}ROSTER // CHALDEA OS{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+    <!-- Terminal Header & Control Panel -->
+    <div class="border border-chaldea-border bg-chaldea-surface/40 p-4 rounded-lg backdrop-blur-sm">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="font-tech text-lg font-bold tracking-wider text-chaldea-cyan flex items-center gap-2">
+                    <span>// SPIRIT ORIGIN ARCHIVE</span>
+                </h1>
+                <p class="text-xs text-slate-400 mt-0.5">Records Index: Database Active</p>
+            </div>
+
+            <!-- Search Bar -->
+            <form method="GET" action="{% url 'servants:roster' %}" class="flex gap-2 w-full md:w-80">
+                {% if selected_class %}
+                    <input type="hidden" name="class" value="{{ selected_class }}">
+                {% endif %}
+                <input 
+                    type="text" 
+                    name="search" 
+                    value="{{ search_query }}" 
+                    placeholder="Search designation or name..." 
+                    class="w-full bg-[#0a0e17] border border-chaldea-border px-3 py-2 text-xs rounded text-slate-200 focus:outline-none focus:border-chaldea-cyan font-mono"
+                >
+                <button type="submit" class="font-tech px-4 py-2 bg-chaldea-cyan/10 border border-chaldea-cyan text-chaldea-cyan text-xs rounded hover:bg-chaldea-cyan hover:text-black transition">
+                    SEEK
+                </button>
+            </form>
+        </div>
+
+        <!-- Class Filter Rail (Scrollable horizontally on mobile) -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pt-4 pb-1 no-scrollbar text-xs font-tech">
+            <a href="{% url 'servants:roster' %}{% if search_query %}?search={{ search_query }}{% endif %}" 
+               class="px-2.5 py-1 rounded border whitespace-nowrap transition {% if not selected_class %}border-chaldea-cyan bg-chaldea-cyan/20 text-chaldea-cyan{% else %}border-chaldea-border text-slate-400 hover:border-slate-500{% endif %}">
+               ALL
+            </a>
+            {% for c in classes %}
+                <a href="?class={{ c }}{% if search_query %}&search={{ search_query }}{% endif %}" 
+                   class="px-2.5 py-1 rounded border whitespace-nowrap transition {% if selected_class == c %}border-chaldea-cyan bg-chaldea-cyan/20 text-chaldea-cyan{% else %}border-chaldea-border text-slate-400 hover:border-slate-500{% endif %}">
+                   {{ c|upper }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Responsive Card Grid: 2 cols on mobile, 3 on tablet, 4 to 6 on desktop -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+        {% for servant in page_obj %}
+        <div class="group flex flex-col border border-chaldea-border bg-chaldea-surface/60 rounded-lg overflow-hidden hover:border-chaldea-cyan/60 hover:shadow-[0_0_12px_rgba(0,229,255,0.15)] transition duration-200">
+            <!-- Portrait Frame -->
+            <div class="relative w-full aspect-square bg-black/40 overflow-hidden">
+                {% if servant.face_url %}
+                    <img src="{{ servant.face_url }}" alt="{{ servant.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                {% else %}
+                    <div class="w-full h-full flex items-center justify-center font-tech text-xs text-slate-600">NO DATA</div>
+                {% endif %}
+                
+                <!-- ID Badge overlay -->
+                <span class="absolute top-1.5 left-1.5 font-tech text-[10px] bg-black/80 border border-chaldea-border px-1.5 py-0.5 rounded text-chaldea-cyan">
+                    #{{ servant.collection_no|stringformat:"03d" }}
+                </span>
+
+                <!-- Rarity Stars overlay -->
+                <span class="absolute bottom-1 right-1.5 text-[11px] text-chaldea-amber font-mono drop-shadow">
+                    {% for i in "x"|rjust:servant.rarity %}★{% endfor %}
+                </span>
+            </div>
+
+            <!-- Card Body -->
+            <div class="p-2.5 flex-1 flex flex-col justify-between">
+                <div>
+                    <span class="font-tech text-[10px] uppercase tracking-wider text-slate-400">{{ servant.class_name }}</span>
+                    <h3 class="font-semibold text-xs text-slate-100 line-clamp-1 group-hover:text-chaldea-cyan transition" title="{{ servant.name }}">
+                        {{ servant.name }}
+                    </h3>
+                </div>
+
+                <!-- Min / Max Stat Tags -->
+                <div class="mt-2 pt-2 border-t border-chaldea-border/50 grid grid-cols-2 gap-1 font-tech text-[10px] text-slate-400">
+                    <div>
+                        <span class="text-slate-500">ATK</span> {{ servant.atk_max }}
+                    </div>
+                    <div>
+                        <span class="text-slate-500">HP</span> {{ servant.hp_max }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-16 border border-dashed border-chaldea-border rounded-lg">
+            <p class="font-tech text-sm text-slate-500">// NO MATCHING SPIRIT ORIGIN LOCATED</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination Controls -->
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-center items-center gap-2 pt-4 pb-8 font-tech text-xs">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_class %}&class={{ selected_class }}{% endif %}" 
+               class="px-3 py-1.5 border border-chaldea-border rounded hover:border-chaldea-cyan text-slate-300 transition">
+                &lt; PREV
+            </a>
+        {% endif %}
+
+        <span class="px-3 py-1.5 text-slate-400">
+            PAGE {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+        </span>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if selected_class %}&class={{ selected_class }}{% endif %}" 
+               class="px-3 py-1.5 border border-chaldea-border rounded hover:border-chaldea-cyan text-slate-300 transition">
+                NEXT &gt;
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
