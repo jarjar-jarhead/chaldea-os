@@ -37,6 +37,34 @@
         .font-tech { font-family: 'JetBrains Mono', monospace; }
         .glow-cyan { box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); }
         .border-glow { border-color: #00e5ff; box-shadow: 0 0 8px rgba(0, 229, 255, 0.3); }
+
+        /* Chaldea Tactical HUD Scrollbars */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0a0e17;
+            border-left: 1px solid #1e293b;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #1e293b;
+            border-radius: 2px;
+            transition: background 0.2s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00e5ff;
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+        }
+
+        /* Firefox Support */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #1e293b #0a0e17;
+        }
     </style>
     {% block extra_head %}{% endblock %}
 </head>

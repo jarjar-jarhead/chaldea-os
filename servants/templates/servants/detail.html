@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="space-y-6 max-w-5xl mx-auto">
+<div class="space-y-4 max-w-6xl mx-auto">
 
     <!-- Top Action Bar -->
     <div class="flex items-center justify-between font-tech text-xs">
@@ -22,16 +22,17 @@
         </div>
     </div>
 
-    <!-- Main Dossier Card -->
-    <div class="border border-chaldea-border bg-chaldea-surface/50 rounded-xl p-5 md:p-6 backdrop-blur-md">
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+    <!-- Main Command Console -->
+    <div class="border border-chaldea-border bg-[#0d131f] rounded-xl p-5 md:p-6 shadow-2xl">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             
-            <!-- Left Panel: Ascension Art Switcher -->
-            <div class="md:col-span-5 flex flex-col items-center">
-                <div class="relative w-full max-w-[280px] aspect-[3/4] bg-black/60 rounded-lg overflow-hidden border border-chaldea-border shadow-[0_0_20px_rgba(0,0,0,0.6)]">
-                    <img id="ascensionArt" src="{{ servant.art_stage1|default:servant.face_url }}" alt="{{ servant.name }}" class="w-full h-full object-cover transition-opacity duration-200">
+            <!-- Left Module: Ascension Art Rig -->
+            <div class="lg:col-span-4 flex flex-col h-full">
+                <!-- Image card stretches to match whatever height the right pane needs -->
+                <div class="relative w-full flex-1 min-h-[420px] lg:min-h-0 bg-black/70 rounded-lg overflow-hidden border border-chaldea-border shadow-[0_0_25px_rgba(0,0,0,0.8)]">
+                    <img id="ascensionArt" src="{{ servant.art_stage1|default:servant.face_url }}" alt="{{ servant.name }}" class="w-full h-full object-cover object-top transition-opacity duration-200">
                     
-                    <div class="absolute top-2 left-2 font-tech text-xs bg-black/80 border border-chaldea-border px-2 py-0.5 rounded text-chaldea-cyan">
+                    <div class="absolute top-2 left-2 font-tech text-xs bg-black/85 border border-chaldea-border px-2 py-0.5 rounded text-chaldea-cyan">
                         #{{ servant.collection_no|stringformat:"03d" }}
                     </div>
                     <div class="absolute bottom-2 right-2 text-sm text-chaldea-amber font-mono drop-shadow">
@@ -39,74 +40,212 @@
                     </div>
                 </div>
 
-                <!-- Stage Switcher Buttons -->
-                <div class="flex items-center gap-1.5 mt-3 font-tech text-[11px]">
+                <!-- Stage Switcher Deck -->
+                <div class="flex items-center justify-center gap-1.5 mt-3 font-tech text-[11px] shrink-0">
                     <span class="text-slate-500 mr-1 text-[10px]">STAGE:</span>
-                    <button type="button" onclick="setArt('{{ servant.art_stage1 }}', this)" class="stage-btn px-2 py-0.5 rounded border border-chaldea-cyan bg-chaldea-cyan/20 text-chaldea-cyan">1</button>
-                    <button type="button" onclick="setArt('{{ servant.art_stage2 }}', this)" class="stage-btn px-2 py-0.5 rounded border border-chaldea-border text-slate-400 hover:border-slate-500">2</button>
-                    <button type="button" onclick="setArt('{{ servant.art_stage3 }}', this)" class="stage-btn px-2 py-0.5 rounded border border-chaldea-border text-slate-400 hover:border-slate-500">3</button>
-                    <button type="button" onclick="setArt('{{ servant.art_stage4 }}', this)" class="stage-btn px-2 py-0.5 rounded border border-chaldea-border text-slate-400 hover:border-slate-500">FINAL</button>
+                    <button type="button" onclick="setArt('{{ servant.art_stage1 }}', this)" class="stage-btn px-2.5 py-0.5 rounded border border-chaldea-cyan bg-chaldea-cyan/20 text-chaldea-cyan">1</button>
+                    <button type="button" onclick="setArt('{{ servant.art_stage2 }}', this)" class="stage-btn px-2.5 py-0.5 rounded border border-chaldea-border text-slate-400 hover:border-slate-500">2</button>
+                    <button type="button" onclick="setArt('{{ servant.art_stage3 }}', this)" class="stage-btn px-2.5 py-0.5 rounded border border-chaldea-border text-slate-400 hover:border-slate-500">3</button>
+                    <button type="button" onclick="setArt('{{ servant.art_stage4 }}', this)" class="stage-btn px-2.5 py-0.5 rounded border border-chaldea-border text-slate-400 hover:border-slate-500">FINAL</button>
                 </div>
             </div>
 
-            <!-- Right Panel: Identification & Radar Chart -->
-            <div class="md:col-span-7 flex flex-col justify-between space-y-4">
-                <div>
-                    <div class="flex items-center gap-2">
-                        <span class="font-tech text-xs uppercase tracking-widest text-chaldea-cyan">{{ servant.class_name }} CLASS</span>
-                        <span class="font-tech text-[10px] text-slate-400 border border-chaldea-border px-2 py-0.5 rounded bg-[#0a0e17]">{{ servant.attribute }}</span>
+            <!-- Right Module: Multi-Function Terminal (MFD) -->
+            <div class="lg:col-span-8 flex flex-col justify-between space-y-4 h-full">
+                
+                <!-- Fixed Telemetry Header -->
+                <div class="border-b border-chaldea-border/60 pb-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="font-tech text-xs uppercase tracking-widest text-chaldea-cyan font-bold">{{ servant.class_name }} CLASS</span>
+                            <span class="font-tech text-[10px] text-slate-400 border border-chaldea-border px-2 py-0.5 rounded bg-[#0a0e17]">{{ servant.attribute }} ATTRIBUTE</span>
+                        </div>
+                        <span class="font-tech text-[11px] text-chaldea-amber font-mono">{{ servant.alignment }}</span>
                     </div>
-                    <h1 class="text-xl md:text-2xl font-bold text-slate-100 mt-1">{{ servant.name }}</h1>
-                    
-                    <!-- Command Deck Visualizer -->
-                    <div class="flex items-center gap-1.5 mt-3">
-                        <span class="font-tech text-[10px] text-slate-500 mr-1">DECK:</span>
-                        {% for card in servant.deck %}
-                            {% if card == 'B' %}
-                                <span class="w-6 h-6 flex items-center justify-center font-tech font-bold text-xs rounded bg-red-950/80 border border-red-500 text-red-400" title="Buster">B</span>
-                            {% elif card == 'A' %}
-                                <span class="w-6 h-6 flex items-center justify-center font-tech font-bold text-xs rounded bg-blue-950/80 border border-blue-500 text-blue-400" title="Arts">A</span>
-                            {% elif card == 'Q' %}
-                                <span class="w-6 h-6 flex items-center justify-center font-tech font-bold text-xs rounded bg-emerald-950/80 border border-emerald-500 text-emerald-400" title="Quick">Q</span>
-                            {% endif %}
+
+                    <h1 class="text-xl md:text-2xl font-bold text-slate-100 mt-1 tracking-tight">{{ servant.name }}</h1>
+
+                    <div class="flex flex-wrap items-center justify-between gap-3 mt-3">
+                        <!-- Command Deck -->
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-tech text-[10px] text-slate-500 mr-1">DECK:</span>
+                            {% for card in servant.deck %}
+                                {% if card == 'B' %}
+                                    <span class="w-6 h-6 flex items-center justify-center font-tech font-bold text-xs rounded bg-red-950/80 border border-red-500 text-red-400" title="Buster">B</span>
+                                {% elif card == 'A' %}
+                                    <span class="w-6 h-6 flex items-center justify-center font-tech font-bold text-xs rounded bg-blue-950/80 border border-blue-500 text-blue-400" title="Arts">A</span>
+                                {% elif card == 'Q' %}
+                                    <span class="w-6 h-6 flex items-center justify-center font-tech font-bold text-xs rounded bg-emerald-950/80 border border-emerald-500 text-emerald-400" title="Quick">Q</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- Core Stats -->
+                        <div class="flex items-center gap-2 font-tech text-xs">
+                            <span class="px-2.5 py-1 rounded bg-[#0a0e17] border border-chaldea-border text-slate-300">
+                                <strong class="text-slate-500">ATK:</strong> {{ servant.atk_max }}
+                            </span>
+                            <span class="px-2.5 py-1 rounded bg-[#0a0e17] border border-chaldea-border text-slate-300">
+                                <strong class="text-slate-500">HP:</strong> {{ servant.hp_max }}
+                            </span>
+                            <span class="px-2.5 py-1 rounded bg-[#0a0e17] border border-chaldea-border text-slate-300">
+                                <strong class="text-slate-500">COST:</strong> {{ servant.cost }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4-Button Mode Switcher -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 font-tech text-xs">
+                    <button type="button" onclick="switchDisplay('radar')" id="btn-mfd-radar" class="mfd-btn px-3 py-2 rounded border border-chaldea-cyan bg-chaldea-cyan/20 text-chaldea-cyan font-bold transition flex items-center justify-center gap-1.5">
+                        <span>[ RADAR ]</span>
+                    </button>
+                    <button type="button" onclick="switchDisplay('skills')" id="btn-mfd-skills" class="mfd-btn px-3 py-2 rounded border border-chaldea-border bg-[#0a0e17] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5">
+                        <span>[ SKILLS ]</span>
+                    </button>
+                    <button type="button" onclick="switchDisplay('stats')" id="btn-mfd-stats" class="mfd-btn px-3 py-2 rounded border border-chaldea-border bg-[#0a0e17] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5">
+                        <span>[ STATS ]</span>
+                    </button>
+                    <button type="button" onclick="switchDisplay('lore')" id="btn-mfd-lore" class="mfd-btn px-3 py-2 rounded border border-chaldea-border bg-[#0a0e17] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5">
+                        <span>[ LORE ]</span>
+                    </button>
+                </div>
+
+                <!-- Swappable Viewport Surface -->
+                <div class="flex-1 min-h-[380px] bg-[#0a0e17]/80 border border-chaldea-border rounded-lg p-4 relative flex flex-col justify-center">
+                    <!-- Panel 1: Radar Chart View -->
+                    <div id="mfd-pane-radar" class="mfd-pane w-full flex flex-col items-center justify-center py-2">
+                        <div class="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] flex items-center justify-center">
+                            <canvas id="parameterRadarCanvas"></canvas>
+                        </div>
+                        <span class="font-tech text-[10px] text-slate-500 mt-2">// CANON SPIRIT ORIGIN PARAMETRIC WEB</span>
+                    </div>
+
+                    <!-- Panel 2: Skills & Passives View -->
+                    <div id="mfd-pane-skills" class="mfd-pane hidden w-full space-y-3 max-h-[440px] overflow-y-auto pr-1">
+                        <!-- Active Skills -->
+                        <div class="space-y-2">
+                            <span class="font-tech text-[11px] text-chaldea-cyan font-bold tracking-wider">// ACTIVE SKILLS DECK</span>
+                            {% for skill in servant.active_skills %}
+                            <div class="p-2.5 bg-[#0d131f] border border-chaldea-border rounded space-y-1">
+                                <div class="flex items-center gap-2">
+                                    {% if skill.icon %}
+                                    <img src="{{ skill.icon }}" alt="{{ skill.name }}" class="w-5 h-5 object-contain">
+                                    {% endif %}
+                                    <span class="font-tech text-xs font-bold text-slate-200">{{ skill.name }}</span>
+                                </div>
+                                <p class="font-sans text-xs text-slate-400 leading-relaxed">{{ skill.detail }}</p>
+                            </div>
+                            {% empty %}
+                            <p class="font-tech text-xs text-slate-500">// NO ACTIVE SKILLS RECORDED</p>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Class Passives -->
+                        {% if servant.passive_skills %}
+                        <div class="space-y-2 pt-2 border-t border-chaldea-border/50">
+                            <span class="font-tech text-[11px] text-chaldea-amber font-bold tracking-wider">// CLASS PASSIVES</span>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                {% for p in servant.passive_skills %}
+                                <div class="p-2 bg-[#0d131f] border border-chaldea-border rounded flex items-start gap-2">
+                                    {% if p.icon %}
+                                    <img src="{{ p.icon }}" alt="{{ p.name }}" class="w-4 h-4 object-contain mt-0.5">
+                                    {% endif %}
+                                    <div>
+                                        <span class="font-tech text-xs font-bold text-slate-300">{{ p.name }}</span>
+                                        <p class="font-sans text-[11px] text-slate-500 leading-tight mt-0.5">{{ p.detail }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Panel 3: Discrete Parameters View -->
+                    <div id="mfd-pane-stats" class="mfd-pane hidden w-full flex flex-col justify-center space-y-4">
+                        <span class="font-tech text-xs text-chaldea-cyan font-bold tracking-wider">// SAINT GRAPH ATTRIBUTE METRICS</span>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 font-tech text-xs text-center">
+                            <div class="p-3 bg-[#0d131f] border border-chaldea-border rounded">
+                                <div class="text-slate-500 text-[10px]">STRENGTH</div>
+                                <div class="text-chaldea-cyan font-bold text-base mt-1">{{ servant.param_str }}</div>
+                            </div>
+                            <div class="p-3 bg-[#0d131f] border border-chaldea-border rounded">
+                                <div class="text-slate-500 text-[10px]">ENDURANCE</div>
+                                <div class="text-chaldea-cyan font-bold text-base mt-1">{{ servant.param_end }}</div>
+                            </div>
+                            <div class="p-3 bg-[#0d131f] border border-chaldea-border rounded">
+                                <div class="text-slate-500 text-[10px]">AGILITY</div>
+                                <div class="text-chaldea-cyan font-bold text-base mt-1">{{ servant.param_agi }}</div>
+                            </div>
+                            <div class="p-3 bg-[#0d131f] border border-chaldea-border rounded">
+                                <div class="text-slate-500 text-[10px]">MANA</div>
+                                <div class="text-chaldea-cyan font-bold text-base mt-1">{{ servant.param_mna }}</div>
+                            </div>
+                            <div class="p-3 bg-[#0d131f] border border-chaldea-border rounded">
+                                <div class="text-slate-500 text-[10px]">LUCK</div>
+                                <div class="text-chaldea-cyan font-bold text-base mt-1">{{ servant.param_lck }}</div>
+                            </div>
+                            <div class="p-3 bg-[#0d131f] border border-chaldea-border rounded">
+                                <div class="text-chaldea-cyan text-[10px]">N. PHANTASM</div>
+                                <div class="text-chaldea-cyan font-bold text-base mt-1">{{ servant.param_np }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Secondary Combat Metrics -->
+                        <div class="p-3 bg-[#0d131f] border border-chaldea-border rounded font-tech text-xs space-y-1 text-slate-400">
+                            <div class="flex justify-between"><span>BASE ATTACK:</span> <strong class="text-slate-200">{{ servant.atk_base }}</strong></div>
+                            <div class="flex justify-between"><span>BASE HEALTH:</span> <strong class="text-slate-200">{{ servant.hp_base }}</strong></div>
+                            <div class="flex justify-between"><span>SPIRIT ALIGNMENT:</span> <span class="text-chaldea-cyan">{{ servant.alignment }}</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 4: Lore & Bond Archives View -->
+                    <div id="mfd-pane-lore" class="mfd-pane hidden w-full space-y-3 max-h-[440px] overflow-y-auto pr-2">
+                        <div class="flex items-center justify-between border-b border-chaldea-border/50 pb-2">
+                            <span class="font-tech text-xs text-chaldea-cyan font-bold tracking-wider">// CLASSIFIED BOND DOSSIER</span>
+                            <span class="font-tech text-[10px] text-slate-500">ORIGIN #{{ servant.collection_no|stringformat:"03d" }}</span>
+                        </div>
+
+                        {% for entry in servant.profile_lore %}
+                            <div class="border border-chaldea-border bg-[#0d131f] rounded p-3 space-y-1">
+                                <div class="flex items-center justify-between border-b border-chaldea-border/40 pb-1">
+                                    <span class="font-tech text-[11px] font-bold text-chaldea-cyan">
+                                        // {{ entry.title|default:"RECORDED TELEMETRY"|upper }}
+                                    </span>
+                                    <span class="font-tech text-[9px] text-slate-500">ARCHIVE LOG</span>
+                                </div>
+                                <p class="font-sans text-xs text-slate-300 leading-relaxed whitespace-pre-line pt-1">
+                                    {{ entry.comment|default:entry }}
+                                </p>
+                            </div>
+                        {% empty %}
+                            <div class="p-8 text-center font-tech text-xs text-slate-500 space-y-1">
+                                <p>// NO ARCHIVAL LORE TRANSMITTED</p>
+                                <p class="text-[10px]">Saint Graph archives require link initialization.</p>
+                            </div>
                         {% endfor %}
                     </div>
 
-                    <!-- Quick Stats -->
-                    <div class="flex flex-wrap gap-2 mt-3 font-tech text-xs">
-                        <span class="px-2.5 py-1 rounded bg-[#0a0e17] border border-chaldea-border text-slate-300">
-                            <strong class="text-slate-500">MAX ATK:</strong> {{ servant.atk_max }}
-                        </span>
-                        <span class="px-2.5 py-1 rounded bg-[#0a0e17] border border-chaldea-border text-slate-300">
-                            <strong class="text-slate-500">MAX HP:</strong> {{ servant.hp_max }}
-                        </span>
-                        <span class="px-2.5 py-1 rounded bg-[#0a0e17] border border-chaldea-border text-slate-300">
-                            <strong class="text-slate-500">COST:</strong> {{ servant.cost }}
-                        </span>
-                    </div>
                 </div>
 
-                <!-- Radar Canvas Container with explicit dimensions -->
-                <div class="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] mx-auto flex items-center justify-center">
-                    <canvas id="parameterRadarCanvas"></canvas>
-                </div>
             </div>
 
         </div>
     </div>
 
-    <!-- Noble Phantasm Highlight Card -->
-    <div class="border border-chaldea-border bg-chaldea-surface/40 rounded-lg p-4 font-tech">
+    <!-- Persistent Bottom Module: Noble Phantasm Armament -->
+    <div class="border border-chaldea-border bg-[#0d131f] rounded-lg p-4 font-tech">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-chaldea-border/50 pb-2">
             <span class="text-xs text-chaldea-cyan font-bold tracking-wider">// NOBLE PHANTASM SPECIFICATION</span>
             <span class="text-[10px] text-slate-400">{{ servant.np_type }}</span>
         </div>
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3">
-            <div>
-                <h4 class="font-sans font-bold text-slate-200 text-sm md:text-base">{{ servant.np_name }}</h4>
-                <p class="text-xs text-slate-500">Active Saint Graph Armament</p>
+            <div class="space-y-0.5">
+                <h4 class="font-sans font-bold text-slate-100 text-sm md:text-base">{{ servant.np_name }}</h4>
+                <p class="font-sans text-xs text-slate-400 leading-relaxed">{{ servant.np_detail|default:"Deals substantial damage to targets." }}</p>
             </div>
-            <div>
+            <div class="shrink-0">
                 {% if servant.np_card == 'Buster' %}
                     <span class="px-3 py-1 rounded text-xs font-bold bg-red-950/80 border border-red-500 text-red-400">BUSTER NP</span>
                 {% elif servant.np_card == 'Arts' %}
@@ -118,97 +257,13 @@
         </div>
     </div>
 
-    <!-- Tabs Header -->
-    <div class="border-b border-chaldea-border flex gap-2 font-tech text-xs">
-        <button type="button" onclick="switchTab('stats')" id="tab-btn-stats" class="tab-btn px-4 py-2.5 border-b-2 border-chaldea-cyan text-chaldea-cyan transition">
-            [ PARAMETERS & RANKS ]
-        </button>
-        <button type="button" onclick="switchTab('lore')" id="tab-btn-lore" class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
-            [ ARCHIVAL LORE ]
-        </button>
-        <button type="button" onclick="switchTab('tips')" id="tab-btn-tips" class="tab-btn px-4 py-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">
-            [ TACTICAL ANALYSIS ]
-        </button>
-    </div>
-
-    <!-- Tab 1: Stats & Ranks -->
-    <div id="tab-content-stats" class="tab-pane space-y-4">
-        <div class="border border-chaldea-border bg-chaldea-surface/30 p-4 rounded-lg">
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 font-tech text-xs text-center">
-                <div class="p-2 bg-[#0a0e17] border border-chaldea-border rounded">
-                    <div class="text-slate-500 text-[10px]">STRENGTH</div>
-                    <div class="text-chaldea-cyan font-bold text-sm mt-0.5">{{ servant.param_str }}</div>
-                </div>
-                <div class="p-2 bg-[#0a0e17] border border-chaldea-border rounded">
-                    <div class="text-slate-500 text-[10px]">ENDURANCE</div>
-                    <div class="text-chaldea-cyan font-bold text-sm mt-0.5">{{ servant.param_end }}</div>
-                </div>
-                <div class="p-2 bg-[#0a0e17] border border-chaldea-border rounded">
-                    <div class="text-slate-500 text-[10px]">AGILITY</div>
-                    <div class="text-chaldea-cyan font-bold text-sm mt-0.5">{{ servant.param_agi }}</div>
-                </div>
-                <div class="p-2 bg-[#0a0e17] border border-chaldea-border rounded">
-                    <div class="text-slate-500 text-[10px]">MANA</div>
-                    <div class="text-chaldea-cyan font-bold text-sm mt-0.5">{{ servant.param_mna }}</div>
-                </div>
-                <div class="p-2 bg-[#0a0e17] border border-chaldea-border rounded">
-                    <div class="text-slate-500 text-[10px]">LUCK</div>
-                    <div class="text-chaldea-cyan font-bold text-sm mt-0.5">{{ servant.param_lck }}</div>
-                </div>
-                <div class="p-2 bg-[#0a0e17] border border-chaldea-border rounded">
-                    <div class="text-chaldea-cyan text-[10px]">N. PHANTASM</div>
-                    <div class="text-chaldea-cyan font-bold text-sm mt-0.5">{{ servant.param_np }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tab 2: Lore -->
-    <div id="tab-content-lore" class="tab-pane hidden space-y-4">
-        <div class="border border-chaldea-border bg-chaldea-surface/30 p-5 rounded-lg font-sans text-sm text-slate-300 leading-relaxed space-y-3">
-            <h3 class="font-tech text-xs uppercase tracking-wider text-chaldea-cyan">// SPIRIT ORIGIN PROFILE</h3>
-            <p>
-                Designation: <strong class="text-slate-100">{{ servant.name }}</strong> is summoned under the 
-                <strong class="text-chaldea-cyan">{{ servant.class_name }}</strong> container. 
-                Saint Graph registered under Origin ID #{{ servant.collection_no|stringformat:"03d" }}.
-            </p>
-            <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded font-tech text-xs text-slate-400">
-                <span class="text-slate-500">ATTRIBUTION:</span> {{ servant.attribute }} | <span class="text-slate-500">ALIGNMENT:</span> {{ servant.alignment }}
-            </div>
-        </div>
-    </div>
-
-    <!-- Tab 3: Tactical Tips -->
-    <div id="tab-content-tips" class="tab-pane hidden space-y-4">
-        <div class="border border-chaldea-border bg-chaldea-surface/30 p-5 rounded-lg text-sm text-slate-300 space-y-3">
-            <h3 class="font-tech text-xs uppercase tracking-wider text-chaldea-cyan">// TACTICAL ANALYSIS</h3>
-            <div class="space-y-2 text-xs">
-                <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded flex items-start gap-3">
-                    <span class="text-chaldea-amber font-tech font-bold">[DECK]</span>
-                    <div>
-                        <strong class="text-slate-200">Deck Distribution:</strong> 
-                        Configured with <span class="font-mono text-chaldea-cyan">{{ servant.deck }}</span>.
-                        {% if 'AAA' in servant.deck %}
-                            Triple-Arts deck allows rapid NP gauge refund and frequent loops with Arts supports.
-                        {% elif 'BBB' in servant.deck %}
-                            Triple-Buster configuration enables high raw card face damage and Buster Brave chains.
-                        {% elif 'QQQ' in servant.deck %}
-                            Triple-Quick setup specializes in critical star generation and burst turns.
-                        {% else %}
-                            Hybrid card distribution providing flexible chain options.
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
 
-<!-- Safe JSON element required by document.getElementById('servant-params-data') -->
+<!-- Safe JSON data injection -->
 {{ servant.parameter_scores|json_script:"servant-params-data" }}
 
 <script>
+    // Ascension Art Switcher
     function setArt(url, btn) {
         if (!url) return;
         const img = document.getElementById('ascensionArt');
@@ -226,20 +281,29 @@
         btn.classList.add('border-chaldea-cyan', 'bg-chaldea-cyan/20', 'text-chaldea-cyan');
     }
 
-    function switchTab(tabKey) {
-        document.querySelectorAll('.tab-pane').forEach(el => el.classList.add('hidden'));
-        document.querySelectorAll('.tab-btn').forEach(el => {
-            el.classList.remove('border-chaldea-cyan', 'text-chaldea-cyan');
-            el.classList.add('border-transparent', 'text-slate-400');
+    // 4-Way Multi-Function Display Swapper
+    function switchDisplay(target) {
+        // Hide all panes
+        document.querySelectorAll('.mfd-pane').forEach(pane => pane.classList.add('hidden'));
+
+        // Reset button appearances
+        document.querySelectorAll('.mfd-btn').forEach(btn => {
+            btn.classList.remove('border-chaldea-cyan', 'bg-chaldea-cyan/20', 'text-chaldea-cyan', 'font-bold');
+            btn.classList.add('border-chaldea-border', 'bg-[#0a0e17]', 'text-slate-400');
         });
 
-        document.getElementById('tab-content-' + tabKey).classList.remove('hidden');
-        const activeBtn = document.getElementById('tab-btn-' + tabKey);
-        activeBtn.classList.remove('border-transparent', 'text-slate-400');
-        activeBtn.classList.add('border-chaldea-cyan', 'text-chaldea-cyan');
+        // Activate targeted pane & button
+        const activePane = document.getElementById('mfd-pane-' + target);
+        const activeBtn = document.getElementById('btn-mfd-' + target);
+
+        if (activePane) activePane.classList.remove('hidden');
+        if (activeBtn) {
+            activeBtn.classList.remove('border-chaldea-border', 'bg-[#0a0e17]', 'text-slate-400');
+            activeBtn.classList.add('border-chaldea-cyan', 'bg-chaldea-cyan/20', 'text-chaldea-cyan', 'font-bold');
+        }
     }
 
-    // Initialize Radar Chart safely once DOM is ready
+    // Radar chart init
     document.addEventListener('DOMContentLoaded', () => {
         const dataElement = document.getElementById('servant-params-data');
         const parameterData = dataElement ? JSON.parse(dataElement.textContent) : [30, 30, 30, 30, 30, 30];

@@ -1,14 +1,57 @@
+import requests
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from .models import Servant
 
+
 def detail_view(request, collection_no):
     servant = get_object_or_404(Servant, collection_no=collection_no)
-    
-    context = {
-        'servant': servant,
-    }
-    return render(request, 'servants/detail.html', context)
+
+    force_refresh = request.GET.get('refresh_lore') == '1'
+    has_valid_lore = (
+        isinstance(servant.profile_lore, list)
+        and len(servant.profile_lore) > 0
+        and isinstance(servant.profile_lore[0], dict)
+        and "comment" in servant.profile_lore[0]
+        and not force_refresh
+    )
+
+    if not has_valid_lore:
+        try:
+            # 1. Resolve internal Atlas Spirit Origin ID via collection query
+            search_url = f"https://api.atlasacademy.io/basic/NA/servant/search?collectionNo={servant.collection_no}"
+            search_res = requests.get(search_url, timeout=6)
+            
+            target_id = None
+            if search_res.status_code == 200 and search_res.json():
+                target_id = search_res.json()[0].get("id")
+
+            # 2. Fetch full lore profile using the resolved ID
+            if target_id:
+                lore_url = f"https://api.atlasacademy.io/nice/NA/servant/{target_id}?lore=true"
+                lore_res = requests.get(lore_url, timeout=6)
+
+                if lore_res.status_code == 200:
+                    data = lore_res.json()
+                    raw_comments = data.get("profile", {}).get("comments", [])
+
+                    parsed_lore = []
+                    for item in raw_comments:
+                        cmt = item.get("comment", "").strip()
+                        ttl = item.get("title", "CLASSIFIED ARCHIVE").strip()
+                        if cmt:
+                            parsed_lore.append({
+                                "title": ttl,
+                                "comment": cmt
+                            })
+
+                    if parsed_lore:
+                        servant.profile_lore = parsed_lore
+                        servant.save(update_fields=["profile_lore"])
+        except Exception as e:
+            print(f"Lore acquisition failed for #{servant.collection_no}: {e}")
+
+    return render(request, 'servants/detail.html', {'servant': servant})
 
 def roster_view(request):
     query = request.GET.get('search', '').strip()
