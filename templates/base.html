@@ -77,27 +77,34 @@
         {% endblock %}
     </main>
 
-    <!-- Mobile Bottom Navigation (Sticky thumb bar) -->
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 bg-[#0d131f]/95 backdrop-blur-lg border-t border-chaldea-border flex items-center justify-around px-2">
-        <a href="{% url 'servants:roster' %}" class="flex flex-col items-center justify-center flex-1 text-slate-400 hover:text-chaldea-cyan font-tech text-[10px]">
-                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
-            ROSTER
-        </a>
-        <a href="{% url 'servants:compare' %}" class="flex flex-col items-center justify-center flex-1 text-slate-400 hover:text-chaldea-cyan font-tech text-[10px]">
-                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-            COMPARE
-        </a>
-        <a href="/about/" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-tech tracking-wider {% if '/about' in request.path %}text-chaldea-cyan{% else %}text-slate-400{% endif %}">
-            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            INFO
-        </a>
-    </nav>
+<!-- Mobile Bottom Navigation (Sticky thumb bar) -->
+<nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 bg-[#0d131f]/95 backdrop-blur-lg border-t border-chaldea-border grid grid-cols-3 items-center px-2">
+    
+    <!-- 01 // Roster -->
+    <a href="{% url 'servants:roster' %}" class="flex flex-col items-center justify-center h-full font-tech text-[10px] tracking-wider transition {% if request.resolver_match.url_name == 'roster' %}text-chaldea-cyan{% else %}text-slate-400 hover:text-slate-200{% endif %}">
+        <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+        </svg>
+        <span>ROSTER</span>
+    </a>
+
+    <!-- 02 // Compare -->
+    <a href="{% url 'servants:compare' %}" class="flex flex-col items-center justify-center h-full font-tech text-[10px] tracking-wider transition {% if request.resolver_match.url_name == 'compare' %}text-chaldea-cyan{% else %}text-slate-400 hover:text-slate-200{% endif %}">
+        <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+        <span>COMPARE</span>
+    </a>
+
+    <!-- 03 // Info / Archive -->
+    <a href="{% url 'servants:about' %}" class="flex flex-col items-center justify-center h-full font-tech text-[10px] tracking-wider transition {% if request.resolver_match.url_name == 'about' %}text-chaldea-cyan{% else %}text-slate-400 hover:text-slate-200{% endif %}">
+        <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>INFO</span>
+    </a>
+
+</nav>
 
 </body>
 </html>
