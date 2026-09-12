@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}SYSTEM ARCHIVE // CHALDEA OS{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto space-y-6 font-tech">
+    <div class="border border-chaldea-border bg-[#0d131f] p-6 rounded-lg space-y-4">
+        <h1 class="text-xl font-bold text-chaldea-cyan tracking-wider flex items-center gap-2">
+            <span>// CHALDEA OS PROTOCOL</span>
+        </h1>
+        <p class="text-xs text-slate-400 leading-relaxed font-sans">
+            Chaldea OS is a tactical Saint Graph analysis tool and command terminal. Designed to parse Spirit Origin parameters, inspect Ascension artwork, and compare tactical deployment metrics across active Servants.
+        </p>
+    </div>
+
+    <div class="border border-chaldea-border bg-[#0d131f] p-6 rounded-lg space-y-3 text-xs">
+        <h2 class="text-chaldea-amber font-bold">// DATA SOURCE CREDITS</h2>
+        <ul class="space-y-2 text-slate-300 font-sans">
+            <li>• Data provided via the <a href="https://atlasacademy.io" target="_blank" class="text-chaldea-cyan underline">Atlas Academy API</a> export pipelines.</li>
+            <li>• UI built with Django, Tailwind CSS, and Chart.js.</li>
+            <li>• Assets and character lore are copyright © TYPE-MOON / FGO PROJECT.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

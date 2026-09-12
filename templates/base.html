@@ -53,10 +53,10 @@
 
             <!-- Desktop Links -->
             <nav class="hidden md:flex items-center gap-8 font-tech text-xs tracking-wider text-slate-400">
-                <a href="/" class="hover:text-chaldea-cyan transition {% if request.path == '/' %}text-chaldea-cyan border-b-2 border-chaldea-cyan py-4{% endif %}">
+                <a href="{% url 'servants:roster' %}" class="px-3 py-1.5 rounded border border-transparent hover:border-chaldea-cyan/40 text-slate-300 hover:text-chaldea-cyan transition font-tech text-xs">
                     [ 01 // ROSTER ]
                 </a>
-                <a href="/compare/" class="hover:text-chaldea-cyan transition {% if '/compare' in request.path %}text-chaldea-cyan border-b-2 border-chaldea-cyan py-4{% endif %}">
+                <a href="{% url 'servants:compare' %}" class="px-3 py-1.5 rounded border border-transparent hover:border-chaldea-cyan/40 text-slate-300 hover:text-chaldea-cyan transition font-tech text-xs">
                     [ 02 // COMPARE ]
                 </a>
                 <a href="/about/" class="hover:text-chaldea-cyan transition {% if '/about' in request.path %}text-chaldea-cyan border-b-2 border-chaldea-cyan py-4{% endif %}">
@@ -79,14 +79,14 @@
 
     <!-- Mobile Bottom Navigation (Sticky thumb bar) -->
     <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 bg-[#0d131f]/95 backdrop-blur-lg border-t border-chaldea-border flex items-center justify-around px-2">
-        <a href="/" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-tech tracking-wider {% if request.path == '/' %}text-chaldea-cyan{% else %}text-slate-400{% endif %}">
-            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="{% url 'servants:roster' %}" class="flex flex-col items-center justify-center flex-1 text-slate-400 hover:text-chaldea-cyan font-tech text-[10px]">
+                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
             </svg>
             ROSTER
         </a>
-        <a href="/compare/" class="flex flex-col items-center justify-center w-full h-full text-[10px] font-tech tracking-wider {% if '/compare' in request.path %}text-chaldea-cyan{% else %}text-slate-400{% endif %}">
-            <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <a href="{% url 'servants:compare' %}" class="flex flex-col items-center justify-center flex-1 text-slate-400 hover:text-chaldea-cyan font-tech text-[10px]">
+                <svg class="w-5 h-5 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
             COMPARE

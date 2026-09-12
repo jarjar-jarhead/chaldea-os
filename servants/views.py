@@ -64,3 +64,40 @@ def roster_view(request):
         'rarities': [5, 4, 3, 2, 1],
     }
     return render(request, 'servants/roster.html', context)
+
+# servants/views.py
+
+def compare_view(request):
+    servant_a_id = request.GET.get('servant_a')
+    servant_b_id = request.GET.get('servant_b')
+
+    # Query only the lightweight fields needed for the dropdowns
+    servant_options = Servant.objects.all().only('collection_no', 'name', 'class_name').order_by('collection_no')
+
+    servant_a = None
+    servant_b = None
+
+    if servant_a_id and servant_a_id.isdigit():
+        servant_a = Servant.objects.filter(collection_no=int(servant_a_id)).first()
+
+    if servant_b_id and servant_b_id.isdigit():
+        servant_b = Servant.objects.filter(collection_no=int(servant_b_id)).first()
+
+    diff = {}
+    if servant_a and servant_b:
+        diff = {
+            'atk_diff': servant_a.atk_max - servant_b.atk_max,
+            'hp_diff': servant_a.hp_max - servant_b.hp_max,
+            'cost_diff': servant_a.cost - servant_b.cost,
+        }
+
+    context = {
+        'servant_options': servant_options,
+        'servant_a': servant_a,
+        'servant_b': servant_b,
+        'diff': diff,
+    }
+    return render(request, 'servants/compare.html', context)
+
+def about_view(request):
+    return render(request, 'servants/about.html')

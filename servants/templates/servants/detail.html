@@ -86,8 +86,8 @@
                     </div>
                 </div>
 
-                <!-- Radar Canvas -->
-                <div class="relative w-full max-w-[300px] mx-auto py-1">
+                <!-- Radar Canvas Container with explicit dimensions -->
+                <div class="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] mx-auto flex items-center justify-center">
                     <canvas id="parameterRadarCanvas"></canvas>
                 </div>
             </div>
@@ -205,6 +205,9 @@
 
 </div>
 
+<!-- Safe JSON element required by document.getElementById('servant-params-data') -->
+{{ servant.parameter_scores|json_script:"servant-params-data" }}
+
 <script>
     function setArt(url, btn) {
         if (!url) return;
@@ -236,43 +239,49 @@
         activeBtn.classList.add('border-chaldea-cyan', 'text-chaldea-cyan');
     }
 
-        const ctx = document.getElementById('parameterRadarCanvas').getContext('2d');
-        const parameterData = JSON.parse(document.getElementById('servant-params-data').textContent);
+    // Initialize Radar Chart safely once DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+        const dataElement = document.getElementById('servant-params-data');
+        const parameterData = dataElement ? JSON.parse(dataElement.textContent) : [30, 30, 30, 30, 30, 30];
+        const canvas = document.getElementById('parameterRadarCanvas');
 
-    new Chart(ctx, {
-        type: 'radar',
-        data: {
-            labels: ['STR', 'END', 'AGI', 'MNA', 'LCK', 'NP'],
-            datasets: [{
-                label: 'Parameter Rank',
-                data: parameterData,
-                backgroundColor: 'rgba(0, 229, 255, 0.25)',
-                borderColor: '#00e5ff',
-                borderWidth: 2,
-                pointBackgroundColor: '#00e5ff',
-                pointBorderColor: '#ffffff',
-                pointRadius: 3,
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            scales: {
-                r: {
-                    min: 0,
-                    max: 100,
-                    ticks: { display: false, stepSize: 20 },
-                    grid: { color: 'rgba(30, 41, 59, 0.8)' },
-                    angleLines: { color: 'rgba(30, 41, 59, 0.8)' },
-                    pointLabels: {
-                        color: '#94a3b8',
-                        font: { family: 'JetBrains Mono', size: 10, weight: 'bold' }
+        if (canvas) {
+            new Chart(canvas.getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: ['STR', 'END', 'AGI', 'MNA', 'LCK', 'NP'],
+                    datasets: [{
+                        label: 'Parameter Rank',
+                        data: parameterData,
+                        backgroundColor: 'rgba(0, 229, 255, 0.25)',
+                        borderColor: '#00e5ff',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#00e5ff',
+                        pointBorderColor: '#ffffff',
+                        pointRadius: 3,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0,
+                            max: 100,
+                            ticks: { display: false, stepSize: 20 },
+                            grid: { color: 'rgba(30, 41, 59, 0.8)' },
+                            angleLines: { color: 'rgba(30, 41, 59, 0.8)' },
+                            pointLabels: {
+                                color: '#94a3b8',
+                                font: { family: 'JetBrains Mono', size: 10, weight: 'bold' }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
                     }
                 }
-            },
-            plugins: {
-                legend: { display: false }
-            }
+            });
         }
     });
 </script>

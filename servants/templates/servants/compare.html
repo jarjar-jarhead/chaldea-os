@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}TACTICAL COMPARE // CHALDEA OS{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-6xl mx-auto">
+
+    <!-- Terminal Header -->
+    <div class="border border-chaldea-border bg-[#0d131f] p-4 rounded-lg">
+        <h1 class="font-tech text-lg font-bold tracking-wider text-chaldea-cyan flex items-center gap-2">
+            <span>// TACTICAL COMPARE LAB</span>
+        </h1>
+        <p class="text-xs text-slate-400 mt-0.5">Dual Saint Graph Differential Analysis Protocol</p>
+    </div>
+
+    <!-- Dual Servant Selector Form with Typeahead Autocomplete -->
+<form method="GET" action="{% url 'servants:compare' %}" class="grid grid-cols-1 md:grid-cols-12 gap-3 p-4 border border-chaldea-border bg-[#0d131f] rounded-lg font-tech text-xs">
+    
+    <!-- Shared Autocomplete Catalog -->
+    <datalist id="servant-catalog">
+        {% for s in servant_options %}
+            <option data-id="{{ s.collection_no }}" value="#{{ s.collection_no|stringformat:'03d' }} {{ s.name }} ({{ s.class_name }})"></option>
+        {% endfor %}
+    </datalist>
+
+    <!-- Slot Alpha Selector -->
+    <div class="md:col-span-5 flex flex-col gap-1.5 relative">
+        <label class="text-chaldea-cyan font-bold tracking-wide flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-chaldea-cyan"></span>
+            ORIGIN ALPHA
+        </label>
+        
+        <!-- Visible Search Input -->
+        <input 
+            type="text" 
+            list="servant-catalog" 
+            id="search_a" 
+            placeholder="Type name, class, or #ID..." 
+            autocomplete="off"
+            value="{% if servant_a %}#{{ servant_a.collection_no|stringformat:'03d' }} {{ servant_a.name }} ({{ servant_a.class_name }}){% endif %}"
+            class="w-full bg-[#0a0e17] border border-chaldea-border px-3 py-2 rounded text-slate-200 placeholder-slate-600 focus:outline-none focus:border-chaldea-cyan"
+            oninput="syncHiddenId('search_a', 'servant_a_id')"
+        >
+        <!-- Actual Value Sent to Django -->
+        <input type="hidden" name="servant_a" id="servant_a_id" value="{{ servant_a.collection_no|default:'' }}">
+    </div>
+
+    <!-- Submit Button -->
+    <div class="md:col-span-2 flex items-end justify-center pb-0.5">
+        <button type="submit" class="w-full py-2 bg-chaldea-cyan/15 border border-chaldea-cyan text-chaldea-cyan rounded hover:bg-chaldea-cyan hover:text-black transition tracking-wider font-bold">
+            ENGAGE
+        </button>
+    </div>
+
+    <!-- Slot Beta Selector -->
+    <div class="md:col-span-5 flex flex-col gap-1.5 relative">
+        <label class="text-chaldea-amber font-bold tracking-wide flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-chaldea-amber"></span>
+            ORIGIN BETA
+        </label>
+        
+        <!-- Visible Search Input -->
+        <input 
+            type="text" 
+            list="servant-catalog" 
+            id="search_b" 
+            placeholder="Type name, class, or #ID..." 
+            autocomplete="off"
+            value="{% if servant_b %}#{{ servant_b.collection_no|stringformat:'03d' }} {{ servant_b.name }} ({{ servant_b.class_name }}){% endif %}"
+            class="w-full bg-[#0a0e17] border border-chaldea-border px-3 py-2 rounded text-slate-200 placeholder-slate-600 focus:outline-none focus:border-chaldea-amber"
+            oninput="syncHiddenId('search_b', 'servant_b_id')"
+        >
+        <!-- Actual Value Sent to Django -->
+        <input type="hidden" name="servant_b" id="servant_b_id" value="{{ servant_b.collection_no|default:'' }}">
+    </div>
+
+</form>
+
+    {% if servant_a or servant_b %}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Stat Panels & Differential -->
+        <div class="lg:col-span-7 space-y-4">
+            
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Subject Alpha Card -->
+                <div class="border {% if servant_a %}border-chaldea-cyan/60{% else %}border-chaldea-border{% endif %} bg-[#0d131f] rounded-lg p-3 flex flex-col justify-between">
+                    {% if servant_a %}
+                        <div>
+                            <div class="relative w-full aspect-square bg-black/60 rounded overflow-hidden mb-2 border border-chaldea-border">
+                                <img src="{{ servant_a.face_url|default:servant_a.art_stage1 }}" alt="{{ servant_a.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover">
+                                <span class="absolute top-1 left-1 font-tech text-[10px] bg-black/80 px-1 rounded text-chaldea-cyan">
+                                    #{{ servant_a.collection_no|stringformat:"03d" }}
+                                </span>
+                            </div>
+                            <span class="font-tech text-[10px] uppercase text-chaldea-cyan font-bold">{{ servant_a.class_name }}</span>
+                            <h3 class="font-bold text-xs text-slate-100 line-clamp-1">{{ servant_a.name }}</h3>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-chaldea-border/50 font-tech text-[10px] space-y-1">
+                            <div class="flex justify-between"><span class="text-slate-500">MAX ATK:</span> <strong class="text-slate-200">{{ servant_a.atk_max }}</strong></div>
+                            <div class="flex justify-between"><span class="text-slate-500">MAX HP:</span> <strong class="text-slate-200">{{ servant_a.hp_max }}</strong></div>
+                            <div class="flex justify-between"><span class="text-slate-500">DECK:</span> <span class="text-chaldea-cyan font-mono">{{ servant_a.deck }}</span></div>
+                        </div>
+                    {% else %}
+                        <div class="h-48 flex items-center justify-center font-tech text-xs text-slate-500">
+                            // NO SUBJECT ALPHA
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Subject Beta Card -->
+                <div class="border {% if servant_b %}border-chaldea-amber/60{% else %}border-chaldea-border{% endif %} bg-[#0d131f] rounded-lg p-3 flex flex-col justify-between">
+                    {% if servant_b %}
+                        <div>
+                            <div class="relative w-full aspect-square bg-black/60 rounded overflow-hidden mb-2 border border-chaldea-border">
+                                <img src="{{ servant_b.face_url|default:servant_b.art_stage1 }}" alt="{{ servant_b.name }}" loading="lazy" decoding="async" class="w-full h-full object-cover">
+                                <span class="absolute top-1 left-1 font-tech text-[10px] bg-black/80 px-1 rounded text-chaldea-amber">
+                                    #{{ servant_b.collection_no|stringformat:"03d" }}
+                                </span>
+                            </div>
+                            <span class="font-tech text-[10px] uppercase text-chaldea-amber font-bold">{{ servant_b.class_name }}</span>
+                            <h3 class="font-bold text-xs text-slate-100 line-clamp-1">{{ servant_b.name }}</h3>
+                        </div>
+                        <div class="mt-2 pt-2 border-t border-chaldea-border/50 font-tech text-[10px] space-y-1">
+                            <div class="flex justify-between"><span class="text-slate-500">MAX ATK:</span> <strong class="text-slate-200">{{ servant_b.atk_max }}</strong></div>
+                            <div class="flex justify-between"><span class="text-slate-500">MAX HP:</span> <strong class="text-slate-200">{{ servant_b.hp_max }}</strong></div>
+                            <div class="flex justify-between"><span class="text-slate-500">DECK:</span> <span class="text-chaldea-amber font-mono">{{ servant_b.deck }}</span></div>
+                        </div>
+                    {% else %}
+                        <div class="h-48 flex items-center justify-center font-tech text-xs text-slate-500">
+                            // NO SUBJECT BETA
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if servant_a and servant_b %}
+            <!-- Telemetry Differential -->
+            <div class="border border-chaldea-border bg-[#0d131f] rounded-lg p-4 font-tech text-xs">
+                <h4 class="text-slate-400 font-bold border-b border-chaldea-border/50 pb-2 mb-3">// DIFFERENTIAL TELEMETRY (ALPHA vs BETA)</h4>
+                
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center bg-[#0a0e17] px-3 py-2 rounded border border-chaldea-border/60">
+                        <span class="text-slate-400">Δ MAX ATK:</span>
+                        <span class="font-bold {% if diff.atk_diff > 0 %}text-chaldea-cyan{% elif diff.atk_diff < 0 %}text-chaldea-amber{% else %}text-slate-400{% endif %}">
+                            {% if diff.atk_diff > 0 %}+{% endif %}{{ diff.atk_diff }}
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between items-center bg-[#0a0e17] px-3 py-2 rounded border border-chaldea-border/60">
+                        <span class="text-slate-400">Δ MAX HP:</span>
+                        <span class="font-bold {% if diff.hp_diff > 0 %}text-chaldea-cyan{% elif diff.hp_diff < 0 %}text-chaldea-amber{% else %}text-slate-400{% endif %}">
+                            {% if diff.hp_diff > 0 %}+{% endif %}{{ diff.hp_diff }}
+                        </span>
+                    </div>
+
+                    <div class="flex justify-between items-center bg-[#0a0e17] px-3 py-2 rounded border border-chaldea-border/60">
+                        <span class="text-slate-400">Δ DEPLOYMENT COST:</span>
+                        <span class="font-bold {% if diff.cost_diff < 0 %}text-chaldea-cyan{% elif diff.cost_diff > 0 %}text-chaldea-amber{% else %}text-slate-400{% endif %}">
+                            {% if diff.cost_diff > 0 %}+{% endif %}{{ diff.cost_diff }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+
+        <!-- Dual Overlay Radar Chart -->
+        <div class="lg:col-span-5 border border-chaldea-border bg-[#0d131f] rounded-xl p-5 flex flex-col justify-between items-center">
+            <h4 class="font-tech text-xs text-chaldea-cyan font-bold tracking-wider self-start">// PARAMETER RADAR OVERLAY</h4>
+            
+            <div class="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] mx-auto flex items-center justify-center py-2">
+                <canvas id="compareRadarCanvas"></canvas>
+            </div>
+
+            <div class="flex items-center gap-6 font-tech text-xs mt-2 border-t border-chaldea-border/50 pt-2 w-full justify-center">
+                <div class="flex items-center gap-1.5 text-chaldea-cyan">
+                    <span class="w-3 h-3 rounded-full bg-chaldea-cyan/40 border border-chaldea-cyan"></span>
+                    <span>ALPHA: {{ servant_a.name|default:"NONE"|truncatechars:14 }}</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-chaldea-amber">
+                    <span class="w-3 h-3 rounded-full bg-chaldea-amber/40 border border-chaldea-amber"></span>
+                    <span>BETA: {{ servant_b.name|default:"NONE"|truncatechars:14 }}</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    {% else %}
+    <div class="text-center py-20 border border-dashed border-chaldea-border rounded-xl bg-[#0d131f]/50">
+        <p class="font-tech text-sm text-slate-500">// SELECT TWO SPIRIT ORIGINS TO COMMENCE TELEMETRIC COMPARISON</p>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- JSON Injections -->
+{% if servant_a %}
+    {{ servant_a.parameter_scores|json_script:"params-alpha-data" }}
+{% endif %}
+{% if servant_b %}
+    {{ servant_b.parameter_scores|json_script:"params-beta-data" }}
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const canvas = document.getElementById('compareRadarCanvas');
+        if (!canvas) return;
+
+        const alphaElem = document.getElementById('params-alpha-data');
+        const betaElem = document.getElementById('params-beta-data');
+
+        const alphaData = alphaElem ? JSON.parse(alphaElem.textContent) : null;
+        const betaData = betaElem ? JSON.parse(betaElem.textContent) : null;
+
+        const datasets = [];
+
+        if (alphaData) {
+            datasets.push({
+                label: 'Alpha',
+                data: alphaData,
+                backgroundColor: 'rgba(0, 229, 255, 0.2)',
+                borderColor: '#00e5ff',
+                borderWidth: 2,
+                pointBackgroundColor: '#00e5ff',
+                pointBorderColor: '#ffffff',
+                pointRadius: 3,
+            });
+        }
+
+        if (betaData) {
+            datasets.push({
+                label: 'Beta',
+                data: betaData,
+                backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                borderColor: '#f59e0b',
+                borderWidth: 2,
+                pointBackgroundColor: '#f59e0b',
+                pointBorderColor: '#ffffff',
+                pointRadius: 3,
+            });
+        }
+
+        new Chart(canvas.getContext('2d'), {
+            type: 'radar',
+            data: {
+                labels: ['STR', 'END', 'AGI', 'MNA', 'LCK', 'NP'],
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        min: 0,
+                        max: 100,
+                        ticks: { display: false, stepSize: 20 },
+                        grid: { color: 'rgba(30, 41, 59, 0.8)' },
+                        angleLines: { color: 'rgba(30, 41, 59, 0.8)' },
+                        pointLabels: {
+                            color: '#94a3b8',
+                            font: { family: 'JetBrains Mono', size: 10, weight: 'bold' }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    });
+</script>
+
+<script>
+    // Maps the user's typed string back to the collection_no ID
+    function syncHiddenId(inputId, hiddenId) {
+        const val = document.getElementById(inputId).value.trim();
+        const hiddenField = document.getElementById(hiddenId);
+        
+        // 1. Check direct match against datalist options
+        const matchOption = document.querySelector(`#servant-catalog option[value="${CSS.escape(val)}"]`);
+        if (matchOption) {
+            hiddenField.value = matchOption.getAttribute('data-id');
+            return;
+        }
+
+        // 2. Fallback regex: extract collection number if string starts with #xxx
+        const numMatch = val.match(/^#?(\d+)/);
+        if (numMatch) {
+            hiddenField.value = parseInt(numMatch[1], 10);
+            return;
+        }
+
+        // 3. Clear hidden value if empty
+        if (!val) {
+            hiddenField.value = '';
+        }
+    }
+</script>
+{% endblock %}
