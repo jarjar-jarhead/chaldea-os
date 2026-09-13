@@ -18,86 +18,81 @@
     </div>
 
     <!-- Dual Servant Selector Form with Typeahead Autocomplete -->
-<form method="GET" action="{% url 'servants:compare' %}" class="grid grid-cols-1 md:grid-cols-12 gap-3 p-4 border border-chaldea-border bg-[#0d131f] rounded-lg font-tech text-xs">
-    
-    <!-- Shared Autocomplete Catalog -->
-    <datalist id="servant-catalog">
-        {% for s in servant_options %}
-            <option data-id="{{ s.collection_no }}" value="#{{ s.collection_no|stringformat:'03d' }} {{ s.name }} ({{ s.class_name }})"></option>
-        {% endfor %}
-    </datalist>
-
-    <!-- Slot Alpha Selector -->
-    <div class="md:col-span-5 flex flex-col gap-1.5 relative">
-        <label class="text-chaldea-cyan font-bold tracking-wide flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-chaldea-cyan"></span>
-            ORIGIN ALPHA
-        </label>
+    <form method="GET" action="{% url 'servants:compare' %}" class="grid grid-cols-1 md:grid-cols-12 gap-3 p-4 border border-chaldea-border bg-[#0d131f] rounded-lg font-tech text-xs">
         
-        <!-- Visible Search Input -->
-        <input 
-            type="text" 
-            list="servant-catalog" 
-            id="search_a" 
-            placeholder="Type name, class, or #ID..." 
-            autocomplete="off"
-            value="{% if servant_a %}#{{ servant_a.collection_no|stringformat:'03d' }} {{ servant_a.name }} ({{ servant_a.class_name }}){% endif %}"
-            class="w-full bg-[#0a0e17] border border-chaldea-border px-3 py-2 rounded text-slate-200 placeholder-slate-600 focus:outline-none focus:border-chaldea-cyan"
-            oninput="syncHiddenId('search_a', 'servant_a_id')"
-        >
-        <!-- Actual Value Sent to Django -->
-        <input type="hidden" name="servant_a" id="servant_a_id" value="{{ servant_a.collection_no|default:'' }}">
-    </div>
+        <!-- Shared Autocomplete Catalog -->
+        <datalist id="servant-catalog">
+            {% for s in servant_options %}
+                <option data-id="{{ s.collection_no }}" value="#{{ s.collection_no|stringformat:'03d' }} {{ s.name }} ({{ s.class_name }})"></option>
+            {% endfor %}
+        </datalist>
 
-    <!-- Submit Button -->
-    <div class="md:col-span-2 flex items-end justify-center pb-0.5">
-        <button type="submit" class="w-full py-2 bg-chaldea-cyan/15 border border-chaldea-cyan text-chaldea-cyan rounded hover:bg-chaldea-cyan hover:text-black transition tracking-wider font-bold">
-            ENGAGE
-        </button>
-    </div>
+        <!-- Slot Alpha Selector -->
+        <div class="md:col-span-5 flex flex-col gap-1.5 relative">
+            <label class="text-chaldea-cyan font-bold tracking-wide flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-chaldea-cyan"></span>
+                ORIGIN ALPHA
+            </label>
+            
+            <input 
+                type="text" 
+                list="servant-catalog" 
+                id="search_a" 
+                placeholder="Type name, class, or #ID..." 
+                autocomplete="off"
+                value="{% if servant_a %}#{{ servant_a.collection_no|stringformat:'03d' }} {{ servant_a.name }} ({{ servant_a.class_name }}){% endif %}"
+                class="w-full bg-[#0a0e17] border border-chaldea-border px-3 py-2 rounded text-slate-200 placeholder-slate-600 focus:outline-none focus:border-chaldea-cyan"
+                oninput="syncHiddenId('search_a', 'servant_a_id')"
+            >
+            <input type="hidden" name="servant_a" id="servant_a_id" value="{{ servant_a.collection_no|default:'' }}">
+        </div>
 
-    <!-- Slot Beta Selector -->
-    <div class="md:col-span-5 flex flex-col gap-1.5 relative">
-        <label class="text-chaldea-amber font-bold tracking-wide flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-chaldea-amber"></span>
-            ORIGIN BETA
-        </label>
-        
-        <!-- Visible Search Input -->
-        <input 
-            type="text" 
-            list="servant-catalog" 
-            id="search_b" 
-            placeholder="Type name, class, or #ID..." 
-            autocomplete="off"
-            value="{% if servant_b %}#{{ servant_b.collection_no|stringformat:'03d' }} {{ servant_b.name }} ({{ servant_b.class_name }}){% endif %}"
-            class="w-full bg-[#0a0e17] border border-chaldea-border px-3 py-2 rounded text-slate-200 placeholder-slate-600 focus:outline-none focus:border-chaldea-amber"
-            oninput="syncHiddenId('search_b', 'servant_b_id')"
-        >
-        <!-- Actual Value Sent to Django -->
-        <input type="hidden" name="servant_b" id="servant_b_id" value="{{ servant_b.collection_no|default:'' }}">
-    </div>
+        <!-- Submit Button -->
+        <div class="md:col-span-2 flex items-end justify-center pb-0.5">
+            <button type="submit" class="w-full py-2 bg-chaldea-cyan/15 border border-chaldea-cyan text-chaldea-cyan rounded hover:bg-chaldea-cyan hover:text-black transition tracking-wider font-bold">
+                ENGAGE
+            </button>
+        </div>
 
-</form>
+        <!-- Slot Beta Selector -->
+        <div class="md:col-span-5 flex flex-col gap-1.5 relative">
+            <label class="text-chaldea-amber font-bold tracking-wide flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-chaldea-amber"></span>
+                ORIGIN BETA
+            </label>
+            
+            <input 
+                type="text" 
+                list="servant-catalog" 
+                id="search_b" 
+                placeholder="Type name, class, or #ID..." 
+                autocomplete="off"
+                value="{% if servant_b %}#{{ servant_b.collection_no|stringformat:'03d' }} {{ servant_b.name }} ({{ servant_b.class_name }}){% endif %}"
+                class="w-full bg-[#0a0e17] border border-chaldea-border px-3 py-2 rounded text-slate-200 placeholder-slate-600 focus:outline-none focus:border-chaldea-amber"
+                oninput="syncHiddenId('search_b', 'servant_b_id')"
+            >
+            <input type="hidden" name="servant_b" id="servant_b_id" value="{{ servant_b.collection_no|default:'' }}">
+        </div>
+
+    </form>
 
     {% if servant_a or servant_b %}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-        <!-- Stat Panels & Differential -->
-        <div class="lg:col-span-7 space-y-4">
+        <!-- Left Module: Stat Panels & Differential (5 cols) -->
+        <div class="lg:col-span-5 space-y-4">
             
             <div class="grid grid-cols-2 gap-3">
-               <!-- Subject Alpha Card -->
+                <!-- Subject Alpha Card -->
                 <div class="border {% if servant_a %}border-chaldea-cyan/60{% else %}border-chaldea-border{% endif %} bg-[#0d131f] rounded-lg p-3 flex flex-col justify-between">
                     {% if servant_a %}
                         <div class="space-y-2.5">
-                            <!-- Full Vertical Ascension Portrait -->
                             <div class="relative w-full aspect-[3/4] bg-black/70 rounded overflow-hidden border border-chaldea-border shadow-[0_0_15px_rgba(0,0,0,0.6)]">
                                 <img src="{{ servant_a.art_stage1|default:servant_a.art_stage4|default:servant_a.face_url }}" 
-                                    alt="{{ servant_a.name }}" 
-                                    loading="lazy" 
-                                    decoding="async" 
-                                    class="w-full h-full object-cover object-top">
+                                     alt="{{ servant_a.name }}" 
+                                     loading="lazy" 
+                                     decoding="async" 
+                                     class="w-full h-full object-cover object-top">
                                 
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#0a0e17] via-transparent to-black/40 pointer-events-none"></div>
 
@@ -132,13 +127,12 @@
                 <div class="border {% if servant_b %}border-chaldea-amber/60{% else %}border-chaldea-border{% endif %} bg-[#0d131f] rounded-lg p-3 flex flex-col justify-between">
                     {% if servant_b %}
                         <div class="space-y-2.5">
-                            <!-- Full Vertical Ascension Portrait -->
                             <div class="relative w-full aspect-[3/4] bg-black/70 rounded overflow-hidden border border-chaldea-border shadow-[0_0_15px_rgba(0,0,0,0.6)]">
                                 <img src="{{ servant_b.art_stage1|default:servant_b.art_stage4|default:servant_b.face_url }}" 
-                                    alt="{{ servant_b.name }}" 
-                                    loading="lazy" 
-                                    decoding="async" 
-                                    class="w-full h-full object-cover object-top">
+                                     alt="{{ servant_b.name }}" 
+                                     loading="lazy" 
+                                     decoding="async" 
+                                     class="w-full h-full object-cover object-top">
                                 
                                 <div class="absolute inset-0 bg-gradient-to-t from-[#0a0e17] via-transparent to-black/40 pointer-events-none"></div>
 
@@ -202,23 +196,80 @@
 
         </div>
 
-        <!-- Dual Overlay Radar Chart -->
-        <div class="lg:col-span-5 border border-chaldea-border bg-[#0d131f] rounded-xl p-5 flex flex-col justify-between items-center">
-            <h4 class="font-tech text-xs text-chaldea-cyan font-bold tracking-wider self-start">// PARAMETER RADAR OVERLAY</h4>
-            
-            <div class="relative w-[280px] h-[280px] sm:w-[320px] sm:h-[320px] mx-auto flex items-center justify-center py-2">
-                <canvas id="compareRadarCanvas"></canvas>
+        <!-- Right Module: Dual-Mode Comparison Terminal (7 cols) -->
+        <div class="lg:col-span-7 flex flex-col space-y-3">
+
+            <!-- Mode Switcher Tabs -->
+            <div class="grid grid-cols-2 gap-2 font-tech text-xs">
+                <button type="button" 
+                        onclick="switchCompareTab('radar')" 
+                        id="btn-tab-radar" 
+                        class="cmp-tab-btn px-3 py-2 rounded border border-chaldea-cyan bg-chaldea-cyan/20 text-chaldea-cyan font-bold transition flex items-center justify-center gap-1.5">
+                    <span>[ DUAL RADAR WEB ]</span>
+                </button>
+                <button type="button" 
+                        onclick="switchCompareTab('ai')" 
+                        id="btn-tab-ai" 
+                        class="cmp-tab-btn px-3 py-2 rounded border border-chaldea-border bg-[#0a0e17] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-chaldea-cyan"></span>
+                    <span>[ SYNAPSE TACTICAL AI ]</span>
+                </button>
             </div>
 
-            <div class="flex items-center gap-6 font-tech text-xs mt-2 border-t border-chaldea-border/50 pt-2 w-full justify-center">
-                <div class="flex items-center gap-1.5 text-chaldea-cyan">
-                    <span class="w-3 h-3 rounded-full bg-chaldea-cyan/40 border border-chaldea-cyan"></span>
-                    <span>ALPHA: {{ servant_a.name|default:"NONE"|truncatechars:14 }}</span>
+            <!-- Locked Frame Viewport -->
+            <div class="h-[430px] bg-[#0a0e17]/90 border border-chaldea-border rounded-lg p-4 relative flex flex-col overflow-hidden shadow-2xl">
+
+                <!-- Pane 1: Fixed Radar Chart Surface -->
+                <div id="cmp-pane-radar" class="cmp-pane w-full h-full flex flex-col items-center justify-center">
+                    <div class="relative w-[280px] h-[280px] sm:w-[310px] sm:h-[310px] flex items-center justify-center">
+                        <canvas id="compareRadarCanvas"></canvas>
+                    </div>
+                    {% if servant_a or servant_b %}
+                    <div class="flex items-center justify-center gap-6 mt-3 font-tech text-[11px]">
+                        {% if servant_a %}
+                        <span class="text-chaldea-cyan flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-chaldea-cyan inline-block"></span>
+                            #{{ servant_a.collection_no|stringformat:"03d" }} {{ servant_a.name }}
+                        </span>
+                        {% endif %}
+                        {% if servant_b %}
+                        <span class="text-chaldea-amber flex items-center gap-1.5">
+                            <span class="w-2.5 h-2.5 rounded-full bg-chaldea-amber inline-block"></span>
+                            #{{ servant_b.collection_no|stringformat:"03d" }} {{ servant_b.name }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
-                <div class="flex items-center gap-1.5 text-chaldea-amber">
-                    <span class="w-3 h-3 rounded-full bg-chaldea-amber/40 border border-chaldea-amber"></span>
-                    <span>BETA: {{ servant_b.name|default:"NONE"|truncatechars:14 }}</span>
+
+                <!-- Pane 2: Tactical AI Terminal -->
+                <div id="cmp-pane-ai" class="cmp-pane hidden w-full h-full flex flex-col justify-between space-y-2">
+                    <div class="flex items-center justify-between border-b border-chaldea-border/60 pb-2 shrink-0">
+                        <span class="font-tech text-xs text-chaldea-cyan font-bold tracking-wider flex items-center gap-1.5">
+                            <span id="ai-status-pip" class="w-2 h-2 rounded-full bg-chaldea-cyan"></span>
+                            // DEPLOYMENT FEASIBILITY BRIEFING
+                        </span>
+                        {% if servant_a and servant_b %}
+                        <button type="button" 
+                                id="btn-run-ai"
+                                onclick="runTacticalAnalysis()"
+                                class="px-2.5 py-1 font-tech text-[10px] bg-chaldea-cyan/15 border border-chaldea-cyan text-chaldea-cyan rounded hover:bg-chaldea-cyan hover:text-black transition disabled:opacity-50">
+                            [ ENGAGE AI ]
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    <!-- Scrollable Debrief Viewport -->
+                    <div id="ai-viewport" class="flex-1 overflow-y-auto pr-2 text-slate-300 font-sans text-xs leading-relaxed space-y-2.5">
+                        <div class="h-full flex flex-col items-center justify-center text-center text-slate-500 font-tech text-xs space-y-2 p-6">
+                            <p>// NEURAL EVALUATION ON STANDBY</p>
+                            <p class="text-[11px] font-sans max-w-sm text-slate-400">
+                                Initiate synapse telemetry to synthesize battery thresholds, card chains, and deployment synergies.
+                            </p>
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
 
@@ -240,6 +291,92 @@
 {% endif %}
 
 <script>
+    // Tab Swapper Logic
+    function switchCompareTab(target) {
+        document.querySelectorAll('.cmp-pane').forEach(p => p.classList.add('hidden'));
+        document.querySelectorAll('.cmp-tab-btn').forEach(btn => {
+            btn.classList.remove('border-chaldea-cyan', 'bg-chaldea-cyan/20', 'text-chaldea-cyan', 'font-bold');
+            btn.classList.add('border-chaldea-border', 'bg-[#0a0e17]', 'text-slate-400');
+        });
+
+        const activePane = document.getElementById('cmp-pane-' + target);
+        const activeBtn = document.getElementById('btn-tab-' + target);
+
+        if (activePane) activePane.classList.remove('hidden');
+        if (activeBtn) {
+            activeBtn.classList.remove('border-chaldea-border', 'bg-[#0a0e17]', 'text-slate-400');
+            activeBtn.classList.add('border-chaldea-cyan', 'bg-chaldea-cyan/20', 'text-chaldea-cyan', 'font-bold');
+        }
+    }
+
+    // Markdown Parser (converts **bold** into styled cyan headers and * into bullets)
+    function formatChaldeaMarkdown(raw) {
+        let clean = raw
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+
+        // Match **BOLD HEADERS** or raw section titles without asterisks
+        clean = clean.replace(/\*\*(OPERATIONAL NICHE &amp; ROLE|KIT &amp; SYNERGY DIFFERENTIAL|TACTICAL DEPLOYMENT DIRECTIVE)\*\*/gi, 
+            '<strong class="text-chaldea-cyan font-tech text-xs tracking-wider block mt-3 mb-1 pb-0.5 border-b border-chaldea-cyan/30">// $1</strong>');
+        
+        clean = clean.replace(/^(OPERATIONAL NICHE &amp; ROLE|KIT &amp; SYNERGY DIFFERENTIAL|TACTICAL DEPLOYMENT DIRECTIVE)$/gmi, 
+            '<strong class="text-chaldea-cyan font-tech text-xs tracking-wider block mt-3 mb-1 pb-0.5 border-b border-chaldea-cyan/30">// $1</strong>');
+
+        // General inline bold
+        clean = clean.replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-100 font-bold">$1</strong>');
+        
+        // Bullet conversion
+        clean = clean.replace(/^\s*\*\s+(.*)$/gm, '<div class="flex items-start gap-1.5 pl-1 py-0.5"><span class="text-chaldea-cyan font-mono text-[10px]">></span><span>$1</span></div>');
+
+        return clean.replace(/\n\n/g, '<div class="h-1.5"></div>');
+    }
+
+    // Asynchronous AI Runner
+    async function runTacticalAnalysis() {
+        const btn = document.getElementById('btn-run-ai');
+        const viewport = document.getElementById('ai-viewport');
+        const pip = document.getElementById('ai-status-pip');
+
+        const params = new URLSearchParams(window.location.search);
+        const servantA = params.get('servant_a');
+        const servantB = params.get('servant_b');
+
+        if (!servantA || !servantB) return;
+
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = "[ COMPUTING... ]";
+        }
+        if (pip) pip.classList.add('animate-ping');
+
+        viewport.innerHTML = `
+            <div class="h-full flex flex-col items-center justify-center space-y-3 py-12 text-chaldea-cyan font-tech text-xs">
+                <div class="w-6 h-6 border-2 border-chaldea-cyan border-t-transparent rounded-full animate-spin"></div>
+                <p class="tracking-widest">// SYNTHESIZING COMBAT DATA...</p>
+            </div>
+        `;
+
+        try {
+            const response = await fetch(`/compare/ai/?servant_a=${servantA}&servant_b=${servantB}`);
+            const data = await response.json();
+
+            if (response.ok && data.debrief) {
+                viewport.innerHTML = formatChaldeaMarkdown(data.debrief);
+                if (btn) btn.textContent = "[ RE-ANALYZE ]";
+            } else {
+                throw new Error(data.error || "Neural transmission failed.");
+            }
+        } catch (err) {
+            viewport.innerHTML = `<div class="p-3 bg-red-950/30 border border-red-500/50 rounded text-red-400 font-tech text-xs">${err.message}</div>`;
+            if (btn) btn.textContent = "[ RETRY ]";
+        } finally {
+            if (btn) btn.disabled = false;
+            if (pip) pip.classList.remove('animate-ping');
+        }
+    }
+
+    // Chart.js Radar Initialization
     document.addEventListener('DOMContentLoaded', () => {
         const canvas = document.getElementById('compareRadarCanvas');
         if (!canvas) return;
@@ -306,29 +443,24 @@
             }
         });
     });
-</script>
 
-<script>
     // Maps the user's typed string back to the collection_no ID
     function syncHiddenId(inputId, hiddenId) {
         const val = document.getElementById(inputId).value.trim();
         const hiddenField = document.getElementById(hiddenId);
         
-        // 1. Check direct match against datalist options
         const matchOption = document.querySelector(`#servant-catalog option[value="${CSS.escape(val)}"]`);
         if (matchOption) {
             hiddenField.value = matchOption.getAttribute('data-id');
             return;
         }
 
-        // 2. Fallback regex: extract collection number if string starts with #xxx
         const numMatch = val.match(/^#?(\d+)/);
         if (numMatch) {
             hiddenField.value = parseInt(numMatch[1], 10);
             return;
         }
 
-        // 3. Clear hidden value if empty
         if (!val) {
             hiddenField.value = '';
         }

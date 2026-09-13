@@ -2,12 +2,14 @@ import requests
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from .models import Servant
+from django.http import JsonResponse
+from .ai_service import generate_tactical_debrief
+
 
 
 def detail_view(request, collection_no):
     servant = get_object_or_404(Servant, collection_no=collection_no)
 
-    # Check if we already have genuine Bond dicts cached
     has_valid_lore = (
         isinstance(servant.profile_lore, list)
         and len(servant.profile_lore) > 0
@@ -17,23 +19,19 @@ def detail_view(request, collection_no):
 
     if not has_valid_lore or request.GET.get('refresh_lore') == '1':
         try:
-            # 1. Resolve internal Atlas ID by servant name
             search_url = f"https://api.atlasacademy.io/basic/NA/servant/search?name={requests.utils.quote(servant.name)}"
             search_res = requests.get(search_url, timeout=6)
             
             target_id = None
             if search_res.status_code == 200:
                 results = search_res.json()
-                # Find exact collectionNo match to prevent crossover
                 for r in results:
                     if r.get("collectionNo") == servant.collection_no:
                         target_id = r.get("id")
                         break
-                # Fallback to first result if collectionNo check misses
                 if not target_id and results:
                     target_id = results[0].get("id")
 
-            # 2. Fetch official lore comments using the resolved ID
             if target_id:
                 lore_url = f"https://api.atlasacademy.io/nice/NA/servant/{target_id}?lore=true"
                 lore_res = requests.get(lore_url, timeout=6)
@@ -60,6 +58,7 @@ def detail_view(request, collection_no):
 
     return render(request, 'servants/detail.html', {'servant': servant})
 
+
 def roster_view(request):
     query = request.GET.get('search', '').strip()
     class_filter = request.GET.get('class', '').strip()
@@ -68,19 +67,15 @@ def roster_view(request):
 
     servants = Servant.objects.all()
 
-    # Text Search (Name)
     if query:
         servants = servants.filter(name__icontains=query)
     
-    # Class Filter
     if class_filter:
         servants = servants.filter(class_name__iexact=class_filter)
 
-    # Rarity (Stars) Filter
     if rarity_filter and rarity_filter.isdigit():
         servants = servants.filter(rarity=int(rarity_filter))
 
-    # Sorting Map
     sort_map = {
         'collection_asc': 'collection_no',
         'collection_desc': '-collection_no',
@@ -94,7 +89,6 @@ def roster_view(request):
     order_field = sort_map.get(sort_option, 'collection_no')
     servants = servants.order_by(order_field)
 
-    # Pagination: 24 per page
     paginator = Paginator(servants, 24)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -115,13 +109,12 @@ def roster_view(request):
     }
     return render(request, 'servants/roster.html', context)
 
-# servants/views.py
 
 def compare_view(request):
     servant_a_id = request.GET.get('servant_a')
     servant_b_id = request.GET.get('servant_b')
+    run_ai = request.GET.get('ai') == '1'
 
-    # Query only the lightweight fields needed for the dropdowns
     servant_options = Servant.objects.all().only('collection_no', 'name', 'class_name').order_by('collection_no')
 
     servant_a = None
@@ -134,6 +127,8 @@ def compare_view(request):
         servant_b = Servant.objects.filter(collection_no=int(servant_b_id)).first()
 
     diff = {}
+    ai_debrief = None
+
     if servant_a and servant_b:
         diff = {
             'atk_diff': servant_a.atk_max - servant_b.atk_max,
@@ -141,13 +136,36 @@ def compare_view(request):
             'cost_diff': servant_a.cost - servant_b.cost,
         }
 
+        if run_ai:
+            ai_debrief = generate_tactical_debrief(servant_a, servant_b)
+
     context = {
         'servant_options': servant_options,
         'servant_a': servant_a,
         'servant_b': servant_b,
         'diff': diff,
+        'ai_debrief': ai_debrief,
+        'ai_requested': run_ai,
     }
     return render(request, 'servants/compare.html', context)
+
+def compare_ai_api(request):
+    """Asynchronous JSON endpoint for the Chaldea AI engine."""
+    servant_a_id = request.GET.get('servant_a')
+    servant_b_id = request.GET.get('servant_b')
+
+    if not (servant_a_id and servant_a_id.isdigit() and servant_b_id and servant_b_id.isdigit()):
+        return JsonResponse({"error": "Invalid Servant Origin identifiers."}, status=400)
+
+    servant_a = Servant.objects.filter(collection_no=int(servant_a_id)).first()
+    servant_b = Servant.objects.filter(collection_no=int(servant_b_id)).first()
+
+    if not (servant_a and servant_b):
+        return JsonResponse({"error": "One or both Spirit Origins could not be located."}, status=404)
+
+    debrief = generate_tactical_debrief(servant_a, servant_b)
+    return JsonResponse({"debrief": debrief})
+
 
 def about_view(request):
     return render(request, 'servants/about.html')
