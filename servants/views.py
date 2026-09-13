@@ -7,26 +7,33 @@ from .models import Servant
 def detail_view(request, collection_no):
     servant = get_object_or_404(Servant, collection_no=collection_no)
 
-    force_refresh = request.GET.get('refresh_lore') == '1'
+    # Check if we already have genuine Bond dicts cached
     has_valid_lore = (
         isinstance(servant.profile_lore, list)
         and len(servant.profile_lore) > 0
         and isinstance(servant.profile_lore[0], dict)
         and "comment" in servant.profile_lore[0]
-        and not force_refresh
     )
 
-    if not has_valid_lore:
+    if not has_valid_lore or request.GET.get('refresh_lore') == '1':
         try:
-            # 1. Resolve internal Atlas Spirit Origin ID via collection query
-            search_url = f"https://api.atlasacademy.io/basic/NA/servant/search?collectionNo={servant.collection_no}"
+            # 1. Resolve internal Atlas ID by servant name
+            search_url = f"https://api.atlasacademy.io/basic/NA/servant/search?name={requests.utils.quote(servant.name)}"
             search_res = requests.get(search_url, timeout=6)
             
             target_id = None
-            if search_res.status_code == 200 and search_res.json():
-                target_id = search_res.json()[0].get("id")
+            if search_res.status_code == 200:
+                results = search_res.json()
+                # Find exact collectionNo match to prevent crossover
+                for r in results:
+                    if r.get("collectionNo") == servant.collection_no:
+                        target_id = r.get("id")
+                        break
+                # Fallback to first result if collectionNo check misses
+                if not target_id and results:
+                    target_id = results[0].get("id")
 
-            # 2. Fetch full lore profile using the resolved ID
+            # 2. Fetch official lore comments using the resolved ID
             if target_id:
                 lore_url = f"https://api.atlasacademy.io/nice/NA/servant/{target_id}?lore=true"
                 lore_res = requests.get(lore_url, timeout=6)
