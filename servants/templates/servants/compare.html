@@ -100,9 +100,14 @@
                                     #{{ servant_a.collection_no|stringformat:"03d" }}
                                 </span>
 
-                                <span class="absolute top-1.5 right-1.5 text-[10px] text-chaldea-amber font-mono drop-shadow">
-                                    {% for i in "x"|rjust:servant_a.rarity %}★{% endfor %}
-                                </span>
+                                <div class="absolute top-1.5 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-black/75 border border-chaldea-border/80 shadow-md">
+                                    {% for i in "x"|rjust:servant_a.rarity %}
+                                        <svg class="w-2.5 h-2.5 text-amber-400 drop-shadow-[0_0_4px_rgba(245,158,11,0.8)] fill-current" viewBox="0 0 24 24">
+                                            <!-- 4-Point Saint Quartz Geometric Spark -->
+                                            <path d="M12 0L14.8 9.2L24 12L14.8 14.8L12 24L9.2 14.8L0 12L9.2 9.2L12 0Z" />
+                                        </svg>
+                                    {% endfor %}
+                                </div>
 
                                 <div class="absolute bottom-1.5 inset-x-2 text-center">
                                     <span class="font-tech text-[9px] uppercase tracking-widest text-chaldea-cyan block">{{ servant_a.class_name }}</span>
@@ -140,9 +145,14 @@
                                     #{{ servant_b.collection_no|stringformat:"03d" }}
                                 </span>
 
-                                <span class="absolute top-1.5 right-1.5 text-[10px] text-chaldea-amber font-mono drop-shadow">
-                                    {% for i in "x"|rjust:servant_b.rarity %}★{% endfor %}
-                                </span>
+                                <div class="absolute top-1.5 right-1.5 flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-black/75 border border-chaldea-border/80 shadow-md">
+                                    {% for i in "x"|rjust:servant_b.rarity %}
+                                        <svg class="w-2.5 h-2.5 text-amber-400 drop-shadow-[0_0_4px_rgba(245,158,11,0.8)] fill-current" viewBox="0 0 24 24">
+                                            <!-- 4-Point Saint Quartz Geometric Spark -->
+                                            <path d="M12 0L14.8 9.2L24 12L14.8 14.8L12 24L9.2 14.8L0 12L9.2 9.2L12 0Z" />
+                                        </svg>
+                                    {% endfor %}
+                                </div>
 
                                 <div class="absolute bottom-1.5 inset-x-2 text-center">
                                     <span class="font-tech text-[9px] uppercase tracking-widest text-chaldea-amber block">{{ servant_b.class_name }}</span>
@@ -316,20 +326,84 @@
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;");
 
-        // Match **BOLD HEADERS** or raw section titles without asterisks
+        // Format Section Headers
         clean = clean.replace(/\*\*(OPERATIONAL NICHE &amp; ROLE|KIT &amp; SYNERGY DIFFERENTIAL|TACTICAL DEPLOYMENT DIRECTIVE)\*\*/gi, 
-            '<strong class="text-chaldea-cyan font-tech text-xs tracking-wider block mt-3 mb-1 pb-0.5 border-b border-chaldea-cyan/30">// $1</strong>');
+            '<div class="hud-header text-chaldea-cyan font-tech text-xs tracking-wider mt-3 mb-1 pb-0.5 border-b border-chaldea-cyan/30 font-bold">// $1</div>');
         
         clean = clean.replace(/^(OPERATIONAL NICHE &amp; ROLE|KIT &amp; SYNERGY DIFFERENTIAL|TACTICAL DEPLOYMENT DIRECTIVE)$/gmi, 
-            '<strong class="text-chaldea-cyan font-tech text-xs tracking-wider block mt-3 mb-1 pb-0.5 border-b border-chaldea-cyan/30">// $1</strong>');
+            '<div class="hud-header text-chaldea-cyan font-tech text-xs tracking-wider mt-3 mb-1 pb-0.5 border-b border-chaldea-cyan/30 font-bold">// $1</div>');
 
-        // General inline bold
+        // Bold highlights
         clean = clean.replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-100 font-bold">$1</strong>');
         
-        // Bullet conversion
-        clean = clean.replace(/^\s*\*\s+(.*)$/gm, '<div class="flex items-start gap-1.5 pl-1 py-0.5"><span class="text-chaldea-cyan font-mono text-[10px]">></span><span>$1</span></div>');
+        // Bullet arrows
+        clean = clean.replace(/^\s*\*\s+(.*)$/gm, '<div class="hud-bullet flex items-start gap-1.5 pl-1 py-0.5"><span class="text-chaldea-cyan font-mono text-[10px]">></span><span>$1</span></div>');
 
-        return clean.replace(/\n\n/g, '<div class="h-1.5"></div>');
+        return clean.replace(/\n\n/g, '<div class="h-2"></div>');
+    }
+
+    // High-speed Teletype Streamer with Tag Safety
+    function streamTerminalText(containerElement, htmlContent, speed = 12) {
+        return new Promise((resolve) => {
+            // Virtual DOM container to safely split text without breaking HTML tags
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = htmlContent;
+
+            // Tokenize: split into HTML tags vs text words
+            const tokens = [];
+            function traverse(node) {
+                if (node.nodeType === Node.TEXT_NODE) {
+                    const words = node.textContent.split(/(\s+)/);
+                    words.forEach(w => {
+                        if (w.length > 0) tokens.push({ type: 'text', value: w });
+                    });
+                } else if (node.nodeType === Node.ELEMENT_NODE) {
+                    tokens.push({ type: 'open_tag', value: node.cloneNode(false) });
+                    node.childNodes.forEach(child => traverse(child));
+                    tokens.push({ type: 'close_tag', value: node.tagName.toLowerCase() });
+                }
+            }
+            traverse(tempDiv);
+
+            containerElement.innerHTML = '';
+            
+            // Blinking Tactical Cursor
+            const cursor = document.createElement('span');
+            cursor.className = 'inline-block w-2 h-3.5 bg-chaldea-cyan ml-1 align-middle animate-pulse';
+            containerElement.appendChild(cursor);
+
+            let nodeStack = [containerElement];
+            let tokenIndex = 0;
+
+            const interval = setInterval(() => {
+                if (tokenIndex >= tokens.length) {
+                    clearInterval(interval);
+                    cursor.remove();
+                    resolve();
+                    return;
+                }
+
+                const current = tokens[tokenIndex];
+                const activeParent = nodeStack[nodeStack.length - 1];
+
+                if (current.type === 'open_tag') {
+                    const newElem = current.value;
+                    activeParent.insertBefore(newElem, cursor);
+                    nodeStack.push(newElem);
+                } else if (current.type === 'close_tag') {
+                    if (nodeStack.length > 1) {
+                        nodeStack.pop();
+                    }
+                } else if (current.type === 'text') {
+                    const textNode = document.createTextNode(current.value);
+                    activeParent.insertBefore(textNode, cursor);
+                }
+
+                // Auto-track telemetry scroll
+                containerElement.scrollTop = containerElement.scrollHeight;
+                tokenIndex++;
+            }, speed);
+        });
     }
 
     // Asynchronous AI Runner
@@ -353,19 +427,26 @@
         viewport.innerHTML = `
             <div class="h-full flex flex-col items-center justify-center space-y-3 py-12 text-chaldea-cyan font-tech text-xs">
                 <div class="w-6 h-6 border-2 border-chaldea-cyan border-t-transparent rounded-full animate-spin"></div>
-                <p class="tracking-widest">// SYNTHESIZING COMBAT DATA...</p>
+                <p class="tracking-widest">// ESTABLISHING TACTICAL UPLINK...</p>
             </div>
         `;
 
         try {
-            const response = await fetch(`/compare/ai/?servant_a=${servantA}&servant_b=${servantB}`);
+            const response = await fetch(`/compare/ai/?servant_a=${encodeURIComponent(servantA)}&servant_b=${encodeURIComponent(servantB)}`);
             const data = await response.json();
 
             if (response.ok && data.debrief) {
-                viewport.innerHTML = formatChaldeaMarkdown(data.debrief);
+                const formattedHtml = formatChaldeaMarkdown(data.debrief);
+                
+                // Switch button label to indicate streaming state
+                if (btn) btn.textContent = "[ STREAMING... ]";
+                
+                // Stream text word-by-word at 12ms intervals
+                await streamTerminalText(viewport, formattedHtml, 12);
+                
                 if (btn) btn.textContent = "[ RE-ANALYZE ]";
             } else {
-                throw new Error(data.error || "Neural transmission failed.");
+                throw new Error(data.error || "Neural link transmission dropped.");
             }
         } catch (err) {
             viewport.innerHTML = `<div class="p-3 bg-red-950/30 border border-red-500/50 rounded text-red-400 font-tech text-xs">${err.message}</div>`;

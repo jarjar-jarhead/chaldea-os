@@ -36,7 +36,13 @@
                         #{{ servant.collection_no|stringformat:"03d" }}
                     </div>
                     <div class="absolute bottom-2 right-2 text-sm text-chaldea-amber font-mono drop-shadow">
-                        {% for i in "x"|rjust:servant.rarity %}★{% endfor %}
+                        <div class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-black/65 border border-chaldea-border/80 backdrop-blur-sm shadow-sm">
+                            {% for i in "x"|rjust:servant.rarity %}
+                                <svg class="w-2.5 h-2.5 text-amber-400 drop-shadow-[0_0_3px_rgba(245,158,11,0.7)] fill-current" viewBox="0 0 24 24">
+                                    <path d="M12 0L14.8 9.2L24 12L14.8 14.8L12 24L9.2 14.8L0 12L9.2 9.2L12 0Z" />
+                                </svg>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
 
