@@ -64,7 +64,7 @@ Use EXACTLY these three bold headers, with 2 concise bullet points under each:
 * Field Alpha when: [Specific boss / farming node condition]
 * Field Beta when: [Specific boss / farming node condition]
 
-Keep total length concise and under 180 words. Do not trail off or write unprompted commentary.
+Keep total length concise and under 500 words. Do not trail off or write unprompted commentary.
 """
 
     models_to_try = [
@@ -82,7 +82,7 @@ Keep total length concise and under 180 words. Do not trail off or write unpromp
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.2,
-                    max_output_tokens=1000,
+                    max_output_tokens=3000,
                 ),
             )
             if response and response.text:
