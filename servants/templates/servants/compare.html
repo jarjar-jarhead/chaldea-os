@@ -342,66 +342,46 @@
         return clean.replace(/\n\n/g, '<div class="h-2"></div>');
     }
 
-    // High-speed Teletype Streamer with Tag Safety
-    function streamTerminalText(containerElement, htmlContent, speed = 12) {
+    // High-speed Teletype Streamer with Tag-Safe Streaming
+    function streamTerminalText(containerElement, htmlContent, speed = 8) {
         return new Promise((resolve) => {
-            // Virtual DOM container to safely split text without breaking HTML tags
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = htmlContent;
-
-            // Tokenize: split into HTML tags vs text words
-            const tokens = [];
-            function traverse(node) {
-                if (node.nodeType === Node.TEXT_NODE) {
-                    const words = node.textContent.split(/(\s+)/);
-                    words.forEach(w => {
-                        if (w.length > 0) tokens.push({ type: 'text', value: w });
-                    });
-                } else if (node.nodeType === Node.ELEMENT_NODE) {
-                    tokens.push({ type: 'open_tag', value: node.cloneNode(false) });
-                    node.childNodes.forEach(child => traverse(child));
-                    tokens.push({ type: 'close_tag', value: node.tagName.toLowerCase() });
-                }
-            }
-            traverse(tempDiv);
-
             containerElement.innerHTML = '';
+
+            const contentWrapper = document.createElement('div');
+            contentWrapper.className = 'inline';
             
-            // Blinking Tactical Cursor
             const cursor = document.createElement('span');
             cursor.className = 'inline-block w-2 h-3.5 bg-chaldea-cyan ml-1 align-middle animate-pulse';
+
+            containerElement.appendChild(contentWrapper);
             containerElement.appendChild(cursor);
 
-            let nodeStack = [containerElement];
-            let tokenIndex = 0;
+            let cursorIndex = 0;
+            const fullLength = htmlContent.length;
 
             const interval = setInterval(() => {
-                if (tokenIndex >= tokens.length) {
+                if (cursorIndex >= fullLength) {
                     clearInterval(interval);
                     cursor.remove();
                     resolve();
                     return;
                 }
 
-                const current = tokens[tokenIndex];
-                const activeParent = nodeStack[nodeStack.length - 1];
-
-                if (current.type === 'open_tag') {
-                    const newElem = current.value;
-                    activeParent.insertBefore(newElem, cursor);
-                    nodeStack.push(newElem);
-                } else if (current.type === 'close_tag') {
-                    if (nodeStack.length > 1) {
-                        nodeStack.pop();
+                // If encountering an HTML tag, jump ahead to its closing bracket '>' instantly
+                if (htmlContent[cursorIndex] === '<') {
+                    const tagEndIndex = htmlContent.indexOf('>', cursorIndex);
+                    if (tagEndIndex !== -1) {
+                        cursorIndex = tagEndIndex + 1;
+                    } else {
+                        cursorIndex++;
                     }
-                } else if (current.type === 'text') {
-                    const textNode = document.createTextNode(current.value);
-                    activeParent.insertBefore(textNode, cursor);
+                } else {
+                    // Advance by small chunks (words or characters) for a crisp teletype feel
+                    cursorIndex++;
                 }
 
-                // Auto-track telemetry scroll
+                contentWrapper.innerHTML = htmlContent.slice(0, cursorIndex);
                 containerElement.scrollTop = containerElement.scrollHeight;
-                tokenIndex++;
             }, speed);
         });
     }
