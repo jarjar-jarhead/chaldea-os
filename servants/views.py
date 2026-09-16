@@ -163,8 +163,14 @@ def compare_ai_api(request):
     if not (servant_a and servant_b):
         return JsonResponse({"error": "One or both Spirit Origins could not be located."}, status=404)
 
-    debrief = generate_tactical_debrief(servant_a, servant_b)
-    return JsonResponse({"debrief": debrief})
+    try:
+        debrief = generate_tactical_debrief(servant_a, servant_b)
+        if not debrief:
+            return JsonResponse({"error": "Neural uplink returned an empty analysis payload."}, status=502)
+        return JsonResponse({"debrief": debrief})
+    except Exception as e:
+        print(f"TACTICAL AI UPLINK ERROR: {e}")
+        return JsonResponse({"error": f"AI Uplink Failure: {str(e)}"}, status=500)
 
 
 def about_view(request):
