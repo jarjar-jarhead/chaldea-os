@@ -67,15 +67,14 @@ Use EXACTLY these three bold headers, with 2 concise bullet points under each:
 Keep total length concise and under 180 words. Do not trail off or write unprompted commentary.
 """
 
-    try:
-        client = genai.Client(api_key=api_key)
+    models_to_try = [
+        "gemini-3.6-flash",
+        "gemini-3.5-flash",
+    ]
 
-        models_to_try = [
-            "gemini-3.6-flash",
-            "gemini-3.0-flash",
-            "gemini-2.0-flash",
-        ]
-        last_error = None
+    client = genai.Client(api_key=api_key)
+    last_error = None
+
     for model_name in models_to_try:
         try:
             response = client.models.generate_content(
@@ -95,5 +94,4 @@ Keep total length concise and under 180 words. Do not trail off or write unpromp
             last_error = e
             continue
 
-    # Re-raise so the Django view knows it actually failed
-    raise RuntimeError(f"All tactical neural relays saturated: {last_error}")
+    return f"// TELEMETRY TRANSMISSION ERROR: {last_error}"
