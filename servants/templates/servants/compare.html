@@ -413,15 +413,19 @@
 
         try {
             const response = await fetch(`/compare/ai/?servant_a=${encodeURIComponent(servantA)}&servant_b=${encodeURIComponent(servantB)}`);
+            
+            // Defend against raw HTML error pages from Render/Gunicorn
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error(`Satellite transmission interrupted (${response.status} ${response.statusText}).`);
+            }
+
             const data = await response.json();
 
             if (response.ok && data.debrief) {
-                const formattedHtml = formatChaldeaMarkdown(data.debrief);
-                
-                // Switch button label to indicate streaming state
                 if (btn) btn.textContent = "[ STREAMING... ]";
                 
-                // Stream text word-by-word at 12ms intervals
+                const formattedHtml = formatChaldeaMarkdown(data.debrief);
                 await streamTerminalText(viewport, formattedHtml, 12);
                 
                 if (btn) btn.textContent = "[ RE-ANALYZE ]";
@@ -429,8 +433,22 @@
                 throw new Error(data.error || "Neural link transmission dropped.");
             }
         } catch (err) {
-            viewport.innerHTML = `<div class="p-3 bg-red-950/30 border border-red-500/50 rounded text-red-400 font-tech text-xs">${err.message}</div>`;
-            if (btn) btn.textContent = "[ RETRY ]";
+            let friendlyMessage = err.message;
+            
+            if (friendlyMessage.includes('503') || friendlyMessage.includes('UNAVAILABLE')) {
+                friendlyMessage = "CHALDEA SATELLITE RELAY SATURATED: Neural bandwidth limit exceeded. Re-engage uplink in a few moments.";
+            }
+
+            viewport.innerHTML = `
+                <div class="p-3.5 bg-red-950/30 border border-red-500/40 rounded text-red-300 font-tech text-xs space-y-1.5">
+                    <div class="font-bold text-red-400 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                        // UPLINK INTERFERENCE DETECTED
+                    </div>
+                    <div class="text-[11px] leading-relaxed text-slate-300">${friendlyMessage}</div>
+                </div>
+            `;
+            if (btn) btn.textContent = "[ RETRY UPLINK ]";
         } finally {
             if (btn) btn.disabled = false;
             if (pip) pip.classList.remove('animate-ping');

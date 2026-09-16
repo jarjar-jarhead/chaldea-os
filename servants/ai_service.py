@@ -69,18 +69,31 @@ Keep total length concise and under 180 words. Do not trail off or write unpromp
 
     try:
         client = genai.Client(api_key=api_key)
-        response = client.models.generate_content(
-            model="gemini-3.6-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                temperature=0.2,
-                max_output_tokens=3000,  # Uncapped runway
-            ),
-        )
-        result = response.text.strip() if response.text else "// TELEMETRY VOID: Model returned empty response."
-        print(f"[AI ENGINE] Success. Length: {len(result)} chars")
-        return result
-    except Exception as e:
-        error_msg = f"// TELEMETRY TRANSMISSION ERROR: {str(e)}"
-        print(f"[AI ENGINE] Error: {e}")
-        return error_msg
+
+        models_to_try = [
+            "gemini-3.6-flash",
+            "gemini-3.0-flash",
+            "gemini-2.0-flash",
+        ]
+        last_error = None
+    for model_name in models_to_try:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.2,
+                    max_output_tokens=1000,
+                ),
+            )
+            if response and response.text:
+                result = response.text.strip()
+                print(f"[AI ENGINE] Success using {model_name}. Length: {len(result)} chars")
+                return result
+        except Exception as e:
+            print(f"[AI ENGINE] {model_name} failed: {e}. Trying failover...")
+            last_error = e
+            continue
+
+    # Re-raise so the Django view knows it actually failed
+    raise RuntimeError(f"All tactical neural relays saturated: {last_error}")
