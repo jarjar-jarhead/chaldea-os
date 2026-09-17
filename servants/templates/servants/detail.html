@@ -33,44 +33,34 @@
   <div class="border border-chaldea-border bg-[#0d131f] rounded-xl p-4 sm:p-5 md:p-6 shadow-2xl">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
 
-      <!-- Left Module: Ascension Art Rig -->
-      <div class="lg:col-span-4 flex flex-col w-full max-w-sm mx-auto lg:max-w-none">
-        
-        <!-- Fluid 3:4 Responsive Container -->
-        <div class="relative w-full aspect-[3/4] bg-black/70 rounded-lg overflow-hidden border border-chaldea-border shadow-[0_0_25px_rgba(0,0,0,0.8)] group">
-          <!-- Live Portrait -->
-          <img
-            id="ascensionArt"
-            src="{{ servant.art_stage1|default:servant.face_url }}"
-            alt="{{ servant.name }}"
-            class="w-full h-full object-cover object-top transition-all duration-200 ease-out transform"
-          />
+        <!-- Left Module: Ascension Art Rig -->
+        <div class="lg:col-span-4 flex flex-col w-full max-w-sm mx-auto lg:max-w-none">
+            
+            <!-- Fluid 3:4 Responsive Container -->
+            <div class="relative w-full aspect-[3/4] bg-black/70 rounded-lg overflow-hidden border border-chaldea-border shadow-[0_0_25px_rgba(0,0,0,0.8)] group">
+            <!-- Live Portrait with Smooth CSS Crossfade & Subtle Scale -->
+            <img
+                id="ascensionArt"
+                src="{{ servant.art_stage1|default:servant.face_url }}"
+                alt="{{ servant.name }}"
+                class="w-full h-full object-cover object-top transition-all duration-200 ease-out transform"
+            />
 
-          <!-- Glitch Canvas Overlay -->
-          <canvas
-            id="glitch-canvas"
-            class="absolute inset-0 w-full h-full pointer-events-none hidden"
-          ></canvas>
-
-          <!-- Ambient Sci-Fi Vignette & Scanlines -->
-          <div class="absolute inset-0 bg-gradient-to-t from-[#0a0e17] via-transparent to-black/30 pointer-events-none"></div>
-          <div class="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.35)_50%)] bg-[length:100%_4px] pointer-events-none opacity-40"></div>
-
-          <!-- Collection ID Tag -->
-          <div class="absolute top-2 left-2 font-tech text-xs bg-black/85 border border-chaldea-border px-2 py-0.5 rounded text-chaldea-cyan">
-            #{{ servant.collection_no|stringformat:"03d" }}
-          </div>
-
-          <!-- Rarity Sparks -->
-          <div class="absolute bottom-2 right-2 text-sm text-chaldea-amber font-mono drop-shadow">
-            <div class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-black/65 border border-chaldea-border/80 backdrop-blur-sm shadow-sm">
-              {% for i in "x"|rjust:servant.rarity %}
-              <svg class="w-2.5 h-2.5 text-amber-400 drop-shadow-[0_0_3px_rgba(245,158,11,0.7)] fill-current" viewBox="0 0 24 24">
-                <path d="M12 0L14.8 9.2L24 12L14.8 14.8L12 24L9.2 14.8L0 12L9.2 9.2L12 0Z" />
-              </svg>
-              {% endfor %}
+            <!-- Collection ID Tag -->
+            <div class="absolute top-2 left-2 font-tech text-xs bg-black/85 border border-chaldea-border px-2 py-0.5 rounded text-chaldea-cyan">
+                #{{ servant.collection_no|stringformat:"03d" }}
             </div>
-          </div>
+
+            <!-- Rarity Sparks -->
+            <div class="absolute bottom-2 right-2 text-sm text-chaldea-amber font-mono drop-shadow">
+                <div class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-black/65 border border-chaldea-border/80 backdrop-blur-sm shadow-sm">
+                {% for i in "x"|rjust:servant.rarity %}
+                <svg class="w-2.5 h-2.5 text-amber-400 drop-shadow-[0_0_3px_rgba(245,158,11,0.7)] fill-current" viewBox="0 0 24 24">
+                    <path d="M12 0L14.8 9.2L24 12L14.8 14.8L12 24L9.2 14.8L0 12L9.2 9.2L12 0Z" />
+                </svg>
+                {% endfor %}
+                </div>
+            </div>
         </div>
 
         <!-- Stage Switcher Deck -->
@@ -135,7 +125,7 @@
           <button type="button" onclick="switchDisplay('lore')" id="btn-mfd-lore" class="mfd-btn px-3 py-2 rounded border border-chaldea-border bg-[#0a0e17] text-slate-400 hover:text-slate-200 transition flex items-center justify-center gap-1.5"><span>[ LORE ]</span></button>
         </div>
 
-        <!-- Fluid Viewport Surface: Maintains proportions without squishing -->
+        <!-- Fluid Viewport Surface -->
         <div class="w-full min-h-[360px] h-[55vh] max-h-[480px] lg:h-[460px] bg-[#0a0e17]/80 border border-chaldea-border rounded-lg p-4 relative flex flex-col justify-center overflow-hidden">
           
           <!-- Panel 1: Radar Chart View -->
@@ -247,44 +237,23 @@
   </div>
 
   <!-- Persistent Bottom Module: Noble Phantasm Armament -->
-  <div
-    class="border border-chaldea-border bg-[#0d131f] rounded-lg p-4 font-tech"
-  >
-    <div
-      class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-chaldea-border/50 pb-2"
-    >
-      <span class="text-xs text-chaldea-cyan font-bold tracking-wider"
-        >// NOBLE PHANTASM SPECIFICATION</span
-      >
+  <div class="border border-chaldea-border bg-[#0d131f] rounded-lg p-4 font-tech">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-chaldea-border/50 pb-2">
+      <span class="text-xs text-chaldea-cyan font-bold tracking-wider">// NOBLE PHANTASM SPECIFICATION</span>
       <span class="text-[10px] text-slate-400">{{ servant.np_type }}</span>
     </div>
-    <div
-      class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3"
-    >
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3">
       <div class="space-y-0.5">
-        <h4 class="font-sans font-bold text-slate-100 text-sm md:text-base">
-          {{ servant.np_name }}
-        </h4>
-        <p class="font-sans text-xs text-slate-400 leading-relaxed">
-          {{ servant.np_detail|default:"Deals substantial damage to targets." }}
-        </p>
+        <h4 class="font-sans font-bold text-slate-100 text-sm md:text-base">{{ servant.np_name }}</h4>
+        <p class="font-sans text-xs text-slate-400 leading-relaxed">{{ servant.np_detail|default:"Deals substantial damage to targets." }}</p>
       </div>
       <div class="shrink-0">
         {% if servant.np_card == 'Buster' %}
-        <span
-          class="px-3 py-1 rounded text-xs font-bold bg-red-950/80 border border-red-500 text-red-400"
-          >BUSTER NP</span
-        >
+        <span class="px-3 py-1 rounded text-xs font-bold bg-red-950/80 border border-red-500 text-red-400">BUSTER NP</span>
         {% elif servant.np_card == 'Arts' %}
-        <span
-          class="px-3 py-1 rounded text-xs font-bold bg-blue-950/80 border border-blue-500 text-blue-400"
-          >ARTS NP</span
-        >
+        <span class="px-3 py-1 rounded text-xs font-bold bg-blue-950/80 border border-blue-500 text-blue-400">ARTS NP</span>
         {% else %}
-        <span
-          class="px-3 py-1 rounded text-xs font-bold bg-emerald-950/80 border border-emerald-500 text-emerald-400"
-          >QUICK NP</span
-        >
+        <span class="px-3 py-1 rounded text-xs font-bold bg-emerald-950/80 border border-emerald-500 text-emerald-400">QUICK NP</span>
         {% endif %}
       </div>
     </div>
@@ -311,127 +280,56 @@
     }
 
     const imgElem = document.getElementById("ascensionArt");
-    const canvas = document.getElementById("glitch-canvas");
-    if (!imgElem || !canvas || imgElem.src === nextUrl) return;
+    if (!imgElem || imgElem.src === nextUrl) return;
 
     isTransitioning = true;
-    const ctx = canvas.getContext("2d");
 
-    const rect = imgElem.getBoundingClientRect();
-    canvas.width = Math.round(rect.width);
-    canvas.height = Math.round(rect.height);
-
-    // Preload incoming graphic
+    // Preload incoming graphic first so swap is instantaneous
     const nextImg = new Image();
-    nextImg.crossOrigin = "anonymous";
     nextImg.src = nextUrl;
 
-    // 1. Soft Outgoing Transition (Micro scale + subtle dissolve)
-    imgElem.style.opacity = "0.4";
-    imgElem.style.transform = "scale(0.985)";
-    canvas.classList.remove("hidden");
+    const performSwap = () => {
+      // Step 1: Fade out and pull back slightly
+      imgElem.style.opacity = "0.2";
+      imgElem.style.transform = "scale(0.97)";
 
-    const startTime = performance.now();
-    const duration = 140; // Short, punchy 140ms duration
-
-    function renderGlitch(now) {
-      const elapsed = now - startTime;
-      const progress = elapsed / duration;
-
-      if (progress >= 1) {
-        // Complete transition: swap source, reset transform & restore opacity
+      setTimeout(() => {
+        // Step 2: Swap source and smoothly ease back in
         imgElem.src = nextUrl;
         imgElem.style.opacity = "1";
         imgElem.style.transform = "scale(1)";
-        canvas.classList.add("hidden");
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
         isTransitioning = false;
 
-        // Button highlight updates
+        // Step 3: Update button highlights
         document.querySelectorAll(".stage-btn").forEach((btn) => {
-          btn.classList.remove(
-            "border-chaldea-cyan",
-            "bg-chaldea-cyan/20",
-            "text-chaldea-cyan",
-            "font-bold"
-          );
+          btn.classList.remove("border-chaldea-cyan", "bg-chaldea-cyan/20", "text-chaldea-cyan", "font-bold");
           btn.classList.add("border-chaldea-border", "text-slate-400");
         });
         if (clickedBtn) {
-          clickedBtn.classList.remove(
-            "border-chaldea-border",
-            "text-slate-400"
-          );
-          clickedBtn.classList.add(
-            "border-chaldea-cyan",
-            "bg-chaldea-cyan/20",
-            "text-chaldea-cyan",
-            "font-bold"
-          );
+          clickedBtn.classList.remove("border-chaldea-border", "text-slate-400");
+          clickedBtn.classList.add("border-chaldea-cyan", "bg-chaldea-cyan/20", "text-chaldea-cyan", "font-bold");
         }
-        return;
-      }
+      }, 160);
+    };
 
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const sourceGraphic = (progress < 0.4 || !nextImg.complete) ? imgElem : nextImg;
-
-      try {
-        ctx.drawImage(sourceGraphic, 0, 0, canvas.width, canvas.height);
-
-        // Minimal slice displacement (only 1 or 2 subtle horizontal lines, 3-6px max shift)
-        if (progress > 0.15 && progress < 0.85) {
-          const slices = Math.floor(Math.random() * 2) + 1;
-          for (let i = 0; i < slices; i++) {
-            const sliceHeight = Math.random() * (canvas.height * 0.08) + 4;
-            const sliceY = Math.random() * (canvas.height - sliceHeight);
-            const shiftX = (Math.random() - 0.5) * 8; // subtle shift
-
-            ctx.drawImage(
-              canvas,
-              0, sliceY, canvas.width, sliceHeight,
-              shiftX, sliceY, canvas.width, sliceHeight
-            );
-          }
-
-          // Subtle cyan edge fringe
-          ctx.fillStyle = "rgba(0, 229, 255, 0.12)";
-          const barY = (canvas.height * (progress * 1.5)) % canvas.height;
-          ctx.fillRect(0, barY, canvas.width, 2);
-        }
-      } catch (err) {
-        // Safe fallback if CDN restricts canvas reading
-        imgElem.src = nextUrl;
-        imgElem.style.opacity = "1";
-        imgElem.style.transform = "scale(1)";
-        canvas.classList.add("hidden");
+    if (nextImg.complete) {
+      performSwap();
+    } else {
+      nextImg.onload = performSwap;
+      nextImg.onerror = () => {
         isTransitioning = false;
-        return;
-      }
-
-      requestAnimationFrame(renderGlitch);
+        console.error("[CHALDEA OS] Telemetry asset failed to load:", nextUrl);
+      };
     }
-
-    requestAnimationFrame(renderGlitch);
   }
 
   // 4-Way Multi-Function Display Swapper
   function switchDisplay(target) {
-    document
-      .querySelectorAll(".mfd-pane")
-      .forEach((pane) => pane.classList.add("hidden"));
+    document.querySelectorAll(".mfd-pane").forEach((pane) => pane.classList.add("hidden"));
 
     document.querySelectorAll(".mfd-btn").forEach((btn) => {
-      btn.classList.remove(
-        "border-chaldea-cyan",
-        "bg-chaldea-cyan/20",
-        "text-chaldea-cyan",
-        "font-bold"
-      );
-      btn.classList.add(
-        "border-chaldea-border",
-        "bg-[#0a0e17]",
-        "text-slate-400"
-      );
+      btn.classList.remove("border-chaldea-cyan", "bg-chaldea-cyan/20", "text-chaldea-cyan", "font-bold");
+      btn.classList.add("border-chaldea-border", "bg-[#0a0e17]", "text-slate-400");
     });
 
     const activePane = document.getElementById("mfd-pane-" + target);
@@ -439,26 +337,15 @@
 
     if (activePane) activePane.classList.remove("hidden");
     if (activeBtn) {
-      activeBtn.classList.remove(
-        "border-chaldea-border",
-        "bg-[#0a0e17]",
-        "text-slate-400"
-      );
-      activeBtn.classList.add(
-        "border-chaldea-cyan",
-        "bg-chaldea-cyan/20",
-        "text-chaldea-cyan",
-        "font-bold"
-      );
+      activeBtn.classList.remove("border-chaldea-border", "bg-[#0a0e17]", "text-slate-400");
+      activeBtn.classList.add("border-chaldea-cyan", "bg-chaldea-cyan/20", "text-chaldea-cyan", "font-bold");
     }
   }
 
   // Radar chart init
   document.addEventListener("DOMContentLoaded", () => {
     const dataElement = document.getElementById("servant-params-data");
-    const parameterData = dataElement
-      ? JSON.parse(dataElement.textContent)
-      : [30, 30, 30, 30, 30, 30];
+    const parameterData = dataElement ? JSON.parse(dataElement.textContent) : [30, 30, 30, 30, 30, 30];
     const canvas = document.getElementById("parameterRadarCanvas");
 
     if (canvas) {
