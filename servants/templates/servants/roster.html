@@ -88,64 +88,69 @@
     </div>
 
 <!-- Responsive Card Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
-        {% for servant in page_obj %}
-        <a href="{% url 'servants:detail' servant.collection_no %}" class="group flex flex-col items-center border border-chaldea-border bg-[#0d131f] rounded-lg p-3 hover:border-chaldea-cyan/60 transition duration-150">
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+    {% for servant in page_obj %}
+    <a href="{% url 'servants:detail' servant.collection_no %}" class="group flex flex-col items-center border border-chaldea-border bg-[#0d131f] rounded-lg p-3 hover:border-chaldea-cyan/60 transition duration-150">
+        
+        <!-- Fixed Portrait Rig (Caps size at 80px so 128px assets stay 1:1 crisp) -->
+        <div class="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-black/50 rounded-lg overflow-hidden border border-chaldea-border/80 shadow-[0_0_12px_rgba(0,0,0,0.5)]">
+            {% if servant.face_url %}
+                <!-- Shimmer Skeleton Placeholder -->
+                <div class="skeleton-shimmer absolute inset-0 bg-gradient-to-r from-[#0d131f] via-[#161f31] to-[#0d131f] animate-pulse pointer-events-none"></div>
+
+                <!-- Live Portrait with Fade-In Transition -->
+                <img 
+                    src="{{ servant.face_url }}" 
+                    alt="{{ servant.name }}" 
+                    loading="lazy" 
+                    decoding="async" 
+                    onload="revealRosterImage(this)"
+                    class="roster-card-art w-full h-full object-cover pixel-crisp opacity-0 scale-95 transition-all duration-300 ease-out group-hover:scale-105"
+                >
+            {% else %}
+                <div class="w-full h-full flex items-center justify-center font-tech text-[10px] text-slate-600">NO DATA</div>
+            {% endif %}
             
-            <!-- Fixed Portrait Rig (Caps size at 80px so 128px assets stay 1:1 crisp) -->
-            <div class="relative w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-black/50 rounded-lg overflow-hidden border border-chaldea-border/80 shadow-[0_0_12px_rgba(0,0,0,0.5)]">
-                {% if servant.face_url %}
-                    <img 
-                        src="{{ servant.face_url }}" 
-                        alt="{{ servant.name }}" 
-                        loading="lazy" 
-                        decoding="async" 
-                        class="w-full h-full object-cover pixel-crisp group-hover:scale-105 transition duration-200"
-                    >
-                {% else %}
-                    <div class="w-full h-full flex items-center justify-center font-tech text-[10px] text-slate-600">NO DATA</div>
-                {% endif %}
-                
-                <span class="absolute top-1 left-1 font-tech text-[9px] bg-black/85 border border-chaldea-border px-1 py-0.2 rounded text-chaldea-cyan">
-                    #{{ servant.collection_no|stringformat:"03d" }}
-                </span>
+            <span class="absolute top-1 left-1 font-tech text-[9px] bg-black/85 border border-chaldea-border px-1 py-0.2 rounded text-chaldea-cyan z-10">
+                #{{ servant.collection_no|stringformat:"03d" }}
+            </span>
 
-                <span class="absolute bottom-0.5 right-1 text-[10px] text-chaldea-amber font-mono drop-shadow">
-                    <div class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-black/65 border border-chaldea-border/80 backdrop-blur-sm shadow-sm">
-                        {% for i in "x"|rjust:servant.rarity %}
-                            <svg class="w-2.5 h-2.5 text-amber-400 drop-shadow-[0_0_3px_rgba(245,158,11,0.7)] fill-current" viewBox="0 0 24 24">
-                                <path d="M12 0L14.8 9.2L24 12L14.8 14.8L12 24L9.2 14.8L0 12L9.2 9.2L12 0Z" />
-                            </svg>
-                        {% endfor %}
-                    </div>
-                </span>
-            </div>
-
-            <!-- Card Body -->
-            <div class="mt-2.5 w-full text-center flex-1 flex flex-col justify-between">
-                <div>
-                    <span class="font-tech text-[9px] uppercase tracking-wider text-chaldea-cyan block truncate">{{ servant.class_name }}</span>
-                    <h3 class="font-semibold text-xs text-slate-100 truncate group-hover:text-chaldea-cyan transition mt-0.5" title="{{ servant.name }}">
-                        {{ servant.name }}
-                    </h3>
+            <span class="absolute bottom-0.5 right-1 text-[10px] text-chaldea-amber font-mono drop-shadow z-10">
+                <div class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-black/65 border border-chaldea-border/80 backdrop-blur-sm shadow-sm">
+                    {% for i in "x"|rjust:servant.rarity %}
+                        <svg class="w-2.5 h-2.5 text-amber-400 drop-shadow-[0_0_3px_rgba(245,158,11,0.7)] fill-current" viewBox="0 0 24 24">
+                            <path d="M12 0L14.8 9.2L24 12L14.8 14.8L12 24L9.2 14.8L0 12L9.2 9.2L12 0Z" />
+                        </svg>
+                    {% endfor %}
                 </div>
-
-                <div class="mt-2 pt-2 border-t border-chaldea-border/50 grid grid-cols-2 gap-1 font-tech text-[9px] text-slate-400">
-                    <div>
-                        <span class="text-slate-500">ATK</span> {{ servant.atk_max }}
-                    </div>
-                    <div>
-                        <span class="text-slate-500">HP</span> {{ servant.hp_max }}
-                    </div>
-                </div>
-            </div>
-        </a>
-        {% empty %}
-        <div class="col-span-full text-center py-16 border border-dashed border-chaldea-border rounded-lg">
-            <p class="font-tech text-sm text-slate-500">// NO MATCHING SPIRIT ORIGIN LOCATED</p>
+            </span>
         </div>
-        {% endfor %}
+
+        <!-- Card Body -->
+        <div class="mt-2.5 w-full text-center flex-1 flex flex-col justify-between">
+            <div>
+                <span class="font-tech text-[9px] uppercase tracking-wider text-chaldea-cyan block truncate">{{ servant.class_name }}</span>
+                <h3 class="font-semibold text-xs text-slate-100 truncate group-hover:text-chaldea-cyan transition mt-0.5" title="{{ servant.name }}">
+                    {{ servant.name }}
+                </h3>
+            </div>
+
+            <div class="mt-2 pt-2 border-t border-chaldea-border/50 grid grid-cols-2 gap-1 font-tech text-[9px] text-slate-400">
+                <div>
+                    <span class="text-slate-500">ATK</span> {{ servant.atk_max }}
+                </div>
+                <div>
+                    <span class="text-slate-500">HP</span> {{ servant.hp_max }}
+                </div>
+            </div>
+        </div>
+    </a>
+    {% empty %}
+    <div class="col-span-full text-center py-16 border border-dashed border-chaldea-border rounded-lg">
+        <p class="font-tech text-sm text-slate-500">// NO MATCHING SPIRIT ORIGIN LOCATED</p>
     </div>
+    {% endfor %}
+</div>
 
     <!-- Pagination Controls -->
     {% if page_obj.has_other_pages %}
@@ -171,4 +176,25 @@
     {% endif %}
 
 </div>
+
+<script>
+    function revealRosterImage(img) {
+        const shimmer = img.previousElementSibling;
+        if (shimmer && shimmer.classList.contains('skeleton-shimmer')) {
+            shimmer.classList.add('opacity-0');
+            setTimeout(() => shimmer.remove(), 300);
+        }
+        img.classList.remove('opacity-0', 'scale-95');
+        img.classList.add('opacity-100', 'scale-100');
+    }
+
+    // Runs immediately for images cached by the browser
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('img.roster-card-art').forEach(img => {
+            if (img.complete && img.naturalHeight !== 0) {
+                revealRosterImage(img);
+            }
+        });
+    });
+</script>
 {% endblock %}
