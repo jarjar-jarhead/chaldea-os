@@ -45,7 +45,8 @@ jobs:
           if [ -n "$(git status --porcelain db.sqlite3)" ]; then
             git add db.sqlite3
             git commit -m "chore(data): auto-sync atlas academy servant roster [skip ci]"
-            git push origin main
+            git pull --rebase origin main
+            git push origin HEAD:main
           else
             echo "Database already up to date. No changes to commit."
           fi
