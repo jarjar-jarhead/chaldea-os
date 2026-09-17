@@ -2,7 +2,7 @@ import requests
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from .models import Servant
-from django.http import JsonResponse
+from django.http import StreamingHttpResponse, JsonResponse
 from .ai_service import generate_tactical_debrief
 
 
@@ -161,7 +161,7 @@ def compare_ai_api(request):
     servant_b = Servant.objects.filter(collection_no=int(servant_b_id)).first()
 
     if not (servant_a and servant_b):
-        return JsonResponse({"error": "One or both Spirit Origins could not be located."}, status=404)
+        return JsonResponse({"error": "One or both Spirit Origins could not be located in database."}, status=404)
 
     try:
         debrief = generate_tactical_debrief(servant_a, servant_b)
@@ -171,7 +171,6 @@ def compare_ai_api(request):
     except Exception as e:
         print(f"TACTICAL AI UPLINK ERROR: {e}")
         return JsonResponse({"error": f"AI Uplink Failure: {str(e)}"}, status=500)
-
 
 def about_view(request):
     return render(request, 'servants/about.html')
