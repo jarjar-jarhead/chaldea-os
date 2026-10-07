@@ -37,15 +37,52 @@
                     <span class="text-[10px] font-tech text-chaldea-cyan tracking-wider block">SLOT 0{{ forloop.counter }} // FRONT UNIT</span>
                     
                     <div class="flex items-center gap-3">
-                        <img src="{{ slot.servant.face_url }}" alt="{{ slot.servant.name }}" class="w-14 h-14 rounded border border-chaldea-border object-cover bg-slate-900">
-                        <div class="flex-1 min-w-0">
-                            <select name="slot{{ forloop.counter }}" onchange="document.getElementById('matrixForm').submit()" class="w-full bg-[#0a0e17] border border-chaldea-border text-slate-200 font-tech text-xs py-1 px-2 rounded focus:outline-none focus:border-chaldea-cyan">
-                                {% for s in all_servants %}
-                                    <option value="{{ s.collection_no }}" {% if s.collection_no == slot.servant.collection_no %}selected{% endif %}>
-                                        [{{ s.class_name|slice:":3"|upper }}] {{ s.name }}
-                                    </option>
-                                {% endfor %}
-                            </select>
+                        <img src="{{ slot.servant.face_url }}" alt="{{ slot.servant.name }}" class="w-14 h-14 rounded border border-chaldea-border object-cover bg-slate-900 shrink-0">
+                        
+                        <div class="flex-1 min-w-0 relative">
+                            <!-- Hidden input that holds the actual collection_no for form submission -->
+                            <input type="hidden" name="slot{{ forloop.counter }}" id="slotInput{{ forloop.counter }}" value="{{ slot.servant.collection_no }}">
+
+                            <!-- Trigger Button -->
+                            <button type="button" 
+                                    onclick="toggleSlotDropdown('{{ forloop.counter }}')" 
+                                    id="slotBtn{{ forloop.counter }}"
+                                    class="w-full bg-[#0a0e17] border border-chaldea-border hover:border-chaldea-cyan text-left text-slate-200 font-tech text-xs py-1.5 px-2.5 rounded flex items-center justify-between transition focus:outline-none">
+                                <span class="truncate pr-1">[{{ slot.servant.class_name|slice:":3"|upper }}] {{ slot.servant.name }}</span>
+                                <span class="text-[9px] text-chaldea-cyan font-mono">&#x25BC;</span>
+                            </button>
+
+                            <!-- Searchable Dropdown Overlay -->
+                            <div id="slotDropdown{{ forloop.counter }}" 
+                                class="hidden absolute z-50 left-0 top-full mt-1 w-72 bg-[#090d16] border border-chaldea-cyan/50 rounded shadow-[0_4px_20px_rgba(0,0,0,0.85)] p-2">
+                                
+                                <!-- Search Filter Input -->
+                                <div class="relative mb-2">
+                                    <input type="text" 
+                                        id="slotSearch{{ forloop.counter }}" 
+                                        placeholder="Search Spirit Origin..." 
+                                        oninput="filterSlotList('{{ forloop.counter }}')"
+                                        class="w-full bg-[#05080f] border border-chaldea-border text-slate-100 font-mono text-[11px] px-2 py-1.5 rounded focus:outline-none focus:border-chaldea-cyan placeholder-slate-600">
+                                </div>
+
+                                <!-- Scrollable List Container -->
+                                <div id="slotList{{ forloop.counter }}" class="max-h-56 overflow-y-auto space-y-1 custom-scrollbar pr-1">
+                                    {% for s in all_servants %}
+                                    <div class="servant-option flex items-center gap-2 p-1.5 rounded hover:bg-chaldea-cyan/10 hover:border-chaldea-cyan/40 border border-transparent cursor-pointer transition"
+                                        data-name="{{ s.name|lower }}"
+                                        data-class="{{ s.class_name|lower }}"
+                                        data-id="{{ s.collection_no }}"
+                                        onclick="selectServantForSlot('{{ forloop.parentloop.counter }}', '{{ s.collection_no }}')">
+                                        <img src="{{ s.face_url }}" class="w-7 h-7 rounded border border-chaldea-border object-cover bg-slate-900 shrink-0">
+                                        <div class="min-w-0 flex-1">
+                                            <div class="text-[11px] font-tech text-slate-200 truncate leading-tight">{{ s.name }}</div>
+                                            <div class="text-[9px] font-mono text-slate-500">No.{{ s.collection_no }} &bull; {{ s.class_name }}</div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
                             <div class="text-[10px] font-mono text-slate-400 mt-1">ATK {{ slot.servant.atk_max }} | {{ slot.servant.class_name }}</div>
                         </div>
                     </div>
@@ -136,4 +173,51 @@
         </div>
     </div>
 </div>
+
+<script>
+function toggleSlotDropdown(slotNum) {
+    const dropdown = document.getElementById(`slotDropdown${slotNum}`);
+    const isHidden = dropdown.classList.contains('hidden');
+    
+    // Close any other open slot dropdowns first
+    document.querySelectorAll('[id^="slotDropdown"]').forEach(d => d.classList.add('hidden'));
+
+    if (isHidden) {
+        dropdown.classList.remove('hidden');
+        const searchInput = document.getElementById(`slotSearch${slotNum}`);
+        searchInput.value = '';
+        filterSlotList(slotNum);
+        setTimeout(() => searchInput.focus(), 50);
+    }
+}
+
+function filterSlotList(slotNum) {
+    const query = document.getElementById(`slotSearch${slotNum}`).value.toLowerCase().trim();
+    const items = document.querySelectorAll(`#slotList${slotNum} .servant-option`);
+    
+    items.forEach(item => {
+        const name = item.getAttribute('data-name');
+        const sClass = item.getAttribute('data-class');
+        const id = item.getAttribute('data-id');
+        
+        if (name.includes(query) || sClass.includes(query) || id.includes(query)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+}
+
+function selectServantForSlot(slotNum, collectionNo) {
+    document.getElementById(`slotInput${slotNum}`).value = collectionNo;
+    document.getElementById('matrixForm').submit();
+}
+
+// Close dropdown if user clicks outside of it
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('[id^="slotDropdown"]') && !event.target.closest('[id^="slotBtn"]')) {
+        document.querySelectorAll('[id^="slotDropdown"]').forEach(d => d.classList.add('hidden'));
+    }
+});
+</script>
 {% endblock %}
