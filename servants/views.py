@@ -4,6 +4,7 @@ from django.core.paginator import Paginator
 from .models import Servant
 from django.http import StreamingHttpResponse, JsonResponse
 from .ai_service import generate_tactical_debrief
+from .team_engine import analyze_frontline
 
 
 
@@ -174,3 +175,52 @@ def compare_ai_api(request):
 
 def about_view(request):
     return render(request, 'servants/about.html')
+
+from django.shortcuts import render
+from .models import Servant
+from .team_engine import analyze_frontline
+
+def team_builder_view(request):
+    all_servants = Servant.objects.all().order_by('collection_no')
+
+    # Selected servant IDs
+    s1_id = request.GET.get('slot1')
+    s2_id = request.GET.get('slot2')
+    s3_id = request.GET.get('slot3')
+    dps_slot = int(request.GET.get('dps_slot', 0))
+
+    defaults = list(all_servants[:3])
+    s1 = Servant.objects.filter(collection_no=s1_id).first() if s1_id else (defaults[0] if len(defaults) > 0 else None)
+    s2 = Servant.objects.filter(collection_no=s2_id).first() if s2_id else (defaults[1] if len(defaults) > 1 else s1)
+    s3 = Servant.objects.filter(collection_no=s3_id).first() if s3_id else (defaults[2] if len(defaults) > 2 else s1)
+
+    # Per-slot CE configuration
+    ce1 = int(request.GET.get('ce1', 50))
+    ce2 = int(request.GET.get('ce2', 50))
+    ce3 = int(request.GET.get('ce3', 50))
+
+    # Append 2 (+20% Mana Loading) toggles
+    app1 = request.GET.get('app1') == '1'
+    app2 = request.GET.get('app2') == '1'
+    app3 = request.GET.get('app3') == '1'
+
+    slot_configs = [
+        {'ce_np': ce1, 'append2': app1},
+        {'ce_np': ce2, 'append2': app2},
+        {'ce_np': ce3, 'append2': app3},
+    ]
+
+    team = [s for s in [s1, s2, s3] if s]
+    analysis = analyze_frontline(team, slot_configs=slot_configs, primary_slot=dps_slot)
+
+    context = {
+        'all_servants': all_servants,
+        's1': s1,
+        's2': s2,
+        's3': s3,
+        'dps_slot': dps_slot,
+        'ce_configs': [ce1, ce2, ce3],
+        'app_configs': [app1, app2, app3],
+        'analysis': analysis,
+    }
+    return render(request, 'servants/team_builder.html', context)

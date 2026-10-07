@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}CHALDEA OS // FRONTLINE BATTERY SOLVER{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+
+    <!-- Header Diagnostic Bar -->
+    <div class="flex items-center justify-between border-b border-chaldea-border/80 pb-4">
+        <div>
+            <div class="font-tech text-xs text-chaldea-cyan tracking-widest">// COMBAT MATRIX DEPLOYMENT</div>
+            <h1 class="text-xl font-bold text-slate-100 font-tech">3-SLOT FRONTLINE NP BATTERY SOLVER</h1>
+        </div>
+        <div class="font-mono text-xs text-slate-400">
+            AUTO-SYNC: <span class="text-emerald-400">ACTIVE</span>
+        </div>
+    </div>
+
+    <!-- Unified Form Wrapper -->
+    <form id="matrixForm" method="GET" action="{% url 'servants:team_builder' %}">
+        <input type="hidden" name="dps_slot" id="dpsSlotInput" value="{{ dps_slot }}">
+
+        <!-- 3-Slot Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {% for slot in analysis.slots %}
+            <div class="border {% if forloop.counter0 == dps_slot %}border-chaldea-cyan shadow-[0_0_20px_rgba(0,243,255,0.18)]{% else %}border-chaldea-border{% endif %} bg-[#0d131f] rounded-lg p-5 flex flex-col justify-between relative overflow-hidden">
+                
+                {% if forloop.counter0 == dps_slot %}
+                    <div class="absolute top-3 right-3 bg-chaldea-cyan/20 border border-chaldea-cyan text-chaldea-cyan font-tech text-[9px] px-2 py-0.5 rounded tracking-widest font-bold">
+                        PRIMARY DPS CARRY
+                    </div>
+                {% endif %}
+
+                <!-- Top: Servant Selector & Identity -->
+                <div class="space-y-3">
+                    <span class="text-[10px] font-tech text-chaldea-cyan tracking-wider block">SLOT 0{{ forloop.counter }} // FRONT UNIT</span>
+                    
+                    <div class="flex items-center gap-3">
+                        <img src="{{ slot.servant.face_url }}" alt="{{ slot.servant.name }}" class="w-14 h-14 rounded border border-chaldea-border object-cover bg-slate-900">
+                        <div class="flex-1 min-w-0">
+                            <select name="slot{{ forloop.counter }}" onchange="document.getElementById('matrixForm').submit()" class="w-full bg-[#0a0e17] border border-chaldea-border text-slate-200 font-tech text-xs py-1 px-2 rounded focus:outline-none focus:border-chaldea-cyan">
+                                {% for s in all_servants %}
+                                    <option value="{{ s.collection_no }}" {% if s.collection_no == slot.servant.collection_no %}selected{% endif %}>
+                                        [{{ s.class_name|slice:":3"|upper }}] {{ s.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="text-[10px] font-mono text-slate-400 mt-1">ATK {{ slot.servant.atk_max }} | {{ slot.servant.class_name }}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Middle: Per-Slot CE & Append 2 Controls -->
+                <div class="my-4 p-3 bg-[#080c14] border border-chaldea-border/80 rounded space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[10px] font-tech text-slate-400">EQUIPPED CE:</label>
+                        <select name="ce{{ forloop.counter }}" onchange="document.getElementById('matrixForm').submit()" class="bg-[#0d131f] border border-chaldea-cyan/40 text-chaldea-cyan font-mono text-[11px] px-2 py-0.5 rounded focus:outline-none">
+                            <option value="0" {% if slot.ce_np == 0 %}selected{% endif %}>0% (Black Grail)</option>
+                            <option value="30" {% if slot.ce_np == 30 %}selected{% endif %}>30% (Standard CE)</option>
+                            <option value="50" {% if slot.ce_np == 50 %}selected{% endif %}>50% (Event / High CE)</option>
+                            <option value="80" {% if slot.ce_np == 80 %}selected{% endif %}>80% (Non-MLB Kscope)</option>
+                            <option value="100" {% if slot.ce_np == 100 %}selected{% endif %}>100% (MLB Kscope)</option>
+                        </select>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1 border-t border-chaldea-border/40">
+                        <span class="text-[10px] font-tech text-slate-400">APPEND 2 (MANA LOADING):</span>
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" name="app{{ forloop.counter }}" value="1" onchange="document.getElementById('matrixForm').submit()" {% if slot.append_np > 0 %}checked{% endif %} class="accent-chaldea-cyan w-3.5 h-3.5 rounded bg-black">
+                            <span class="text-[10px] font-mono font-bold {% if slot.append_np > 0 %}text-chaldea-cyan{% else %}text-slate-500{% endif %}">+20%</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Bottom: Live Turn-1 Gauge Readiness Bar -->
+                <div class="space-y-1.5">
+                    <div class="flex justify-between items-center font-tech text-xs">
+                        <span class="text-slate-400">TURN 1 GAUGE:</span>
+                        <span class="font-mono font-bold {% if slot.np_ready %}text-emerald-400{% else %}text-amber-400{% endif %}">
+                            {{ slot.total_np }}% {% if slot.np_ready %}[ONLINE]{% else %}[DEFICIT]{% endif %}
+                        </span>
+                    </div>
+                    
+                    <div class="w-full h-3 bg-black/70 rounded border border-chaldea-border overflow-hidden p-0.5">
+                        <div class="h-full rounded-sm transition-all duration-500 {% if slot.np_ready %}bg-gradient-to-r from-teal-500 to-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]{% else %}bg-gradient-to-r from-amber-600 to-yellow-400{% endif %}" style="width: {{ slot.gauge_fill_pct }}%;"></div>
+                    </div>
+
+                    <div class="text-[9px] font-mono text-slate-400 grid grid-cols-2 gap-x-2 gap-y-1 pt-1.5 border-t border-chaldea-border/40">
+                        <span>CE: <strong class="text-slate-200">+{{ slot.ce_np }}%</strong></span>
+                        <span>APPEND: <strong class="text-slate-200">+{{ slot.append_np }}%</strong></span>
+                        <span>SELF: <strong class="text-amber-400">+{{ slot.self_battery }}%</strong></span>
+                        <span>TEAM/TARGET: <strong class="text-chaldea-cyan">+{{ slot.party_received|add:slot.target_received }}%</strong></span>
+                    </div>
+                </div>
+
+                <!-- Role Assign Button -->
+                <div class="mt-4 pt-3 border-t border-chaldea-border/60">
+                    <button type="button" onclick="document.getElementById('dpsSlotInput').value='{{ forloop.counter0 }}'; document.getElementById('matrixForm').submit();" class="w-full font-tech text-[10px] py-1.5 rounded border {% if forloop.counter0 == dps_slot %}bg-chaldea-cyan text-black font-bold border-chaldea-cyan shadow-[0_0_10px_rgba(0,243,255,0.4)]{% else %}border-chaldea-border text-slate-400 hover:text-chaldea-cyan hover:border-chaldea-cyan/40{% endif %} transition">
+                        {% if forloop.counter0 == dps_slot %}DESIGNATED MAIN CARRY{% else %}TARGET BUFFS TO THIS SLOT{% endif %}
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+
+    <!-- Steroid Multiplication Curve -->
+    <div class="border border-chaldea-border bg-[#0d131f] rounded-lg p-5">
+        <div class="font-tech text-xs text-chaldea-cyan tracking-wider border-b border-chaldea-border/80 pb-2 flex justify-between items-center">
+            <span>// PRIMARY CARRY STEROID MULTIPLICATION CURVE</span>
+            <span class="font-mono text-slate-400 text-[10px]">FORMULA: (1+ATK) &times; (1+Card) &times; (1+NP)</span>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 text-center">
+            <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded">
+                <span class="block text-[10px] font-tech text-slate-400">TOTAL ATK BUFF</span>
+                <span class="text-base font-mono font-bold text-slate-100">+{{ analysis.buffs.atk_pct }}%</span>
+            </div>
+            <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded">
+                <span class="block text-[10px] font-tech text-slate-400">CARD PERFORMANCE</span>
+                <span class="text-base font-mono font-bold text-chaldea-cyan">+{{ analysis.buffs.card_pct }}%</span>
+            </div>
+            <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded">
+                <span class="block text-[10px] font-tech text-slate-400">NP DAMAGE UP</span>
+                <span class="text-base font-mono font-bold text-amber-400">+{{ analysis.buffs.np_pct }}%</span>
+            </div>
+            <div class="p-3 bg-[#0a0e17] border border-chaldea-cyan/40 rounded shadow-[0_0_12px_rgba(0,243,255,0.15)]">
+                <span class="block text-[10px] font-tech text-chaldea-cyan font-bold">TOTAL MULTIPLIER</span>
+                <span class="text-xl font-mono font-bold text-emerald-400">{{ analysis.buffs.multiplier }}x</span>
+            </div>
+            <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded">
+                <span class="block text-[10px] font-tech text-slate-400">MULTIPLICATIVE GAIN</span>
+                <span class="text-base font-mono font-bold text-purple-400">+{{ analysis.buffs.gain_vs_additive }}%</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
