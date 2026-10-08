@@ -7,7 +7,6 @@ from .ai_service import generate_tactical_debrief
 from .team_engine import analyze_frontline
 
 
-
 def detail_view(request, collection_no):
     servant = get_object_or_404(Servant, collection_no=collection_no)
 
@@ -176,9 +175,6 @@ def compare_ai_api(request):
 def about_view(request):
     return render(request, 'servants/about.html')
 
-from django.shortcuts import render
-from .models import Servant
-from .team_engine import analyze_frontline
 
 def team_builder_view(request):
     all_servants = Servant.objects.all().order_by('collection_no')
@@ -199,7 +195,7 @@ def team_builder_view(request):
     ce2 = int(request.GET.get('ce2', 50))
     ce3 = int(request.GET.get('ce3', 50))
 
-    # Append 2 (+20% Mana Loading) toggles
+    # Append 2 (+20% Mana Loading)
     app1 = request.GET.get('app1') == '1'
     app2 = request.GET.get('app2') == '1'
     app3 = request.GET.get('app3') == '1'
@@ -212,6 +208,32 @@ def team_builder_view(request):
 
     team = [s for s in [s1, s2, s3] if s]
     analysis = analyze_frontline(team, slot_configs=slot_configs, primary_slot=dps_slot)
+
+    # Return pure JSON for smooth in-place frontend updates
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        slots_payload = []
+        for item in analysis["slots"]:
+            srv = item["servant"]
+            slots_payload.append({
+                "collection_no": srv.collection_no,
+                "name": srv.name,
+                "class_name": srv.class_name,
+                "face_url": srv.face_url,
+                "atk_max": srv.atk_max,
+                "total_np": item["total_np"],
+                "gauge_fill_pct": item["gauge_fill_pct"],
+                "np_ready": item["np_ready"],
+                "ce_np": item["ce_np"],
+                "append_np": item["append_np"],
+                "self_battery": item["self_battery"],
+                "party_received": item["party_received"],
+                "target_received": item["target_received"],
+            })
+        return JsonResponse({
+            "slots": slots_payload,
+            "dps_slot": dps_slot,
+            "buffs": analysis["buffs"],
+        })
 
     context = {
         'all_servants': all_servants,

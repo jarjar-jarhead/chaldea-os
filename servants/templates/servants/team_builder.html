@@ -6,73 +6,68 @@
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-6 space-y-6">
 
-    <!-- Header Diagnostic Bar -->
     <div class="flex items-center justify-between border-b border-chaldea-border/80 pb-4">
         <div>
             <div class="font-tech text-xs text-chaldea-cyan tracking-widest">// COMBAT MATRIX DEPLOYMENT</div>
             <h1 class="text-xl font-bold text-slate-100 font-tech">3-SLOT FRONTLINE NP BATTERY SOLVER</h1>
         </div>
-        <div class="font-mono text-xs text-slate-400">
-            AUTO-SYNC: <span class="text-emerald-400">ACTIVE</span>
+        <div class="font-mono text-xs text-slate-400 flex items-center gap-2">
+            <span id="syncIndicator" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            LIVE TELEMETRY: <span class="text-emerald-400 font-tech">SYNCHRONIZED</span>
         </div>
     </div>
 
-    <!-- Unified Form Wrapper -->
     <form id="matrixForm" method="GET" action="{% url 'servants:team_builder' %}">
         <input type="hidden" name="dps_slot" id="dpsSlotInput" value="{{ dps_slot }}">
 
-        <!-- 3-Slot Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
             {% for slot in analysis.slots %}
-            <div class="border {% if forloop.counter0 == dps_slot %}border-chaldea-cyan shadow-[0_0_20px_rgba(0,243,255,0.18)]{% else %}border-chaldea-border{% endif %} bg-[#0d131f] rounded-lg p-5 flex flex-col justify-between relative overflow-hidden">
+            <div id="slot-card-{{ forloop.counter0 }}" 
+                 class="slot-card border {% if forloop.counter0 == dps_slot %}border-chaldea-cyan shadow-[0_0_20px_rgba(0,243,255,0.18)]{% else %}border-chaldea-border{% endif %} bg-[#0d131f] rounded-lg p-5 flex flex-col justify-between relative overflow-hidden transition-all duration-300">
                 
-                {% if forloop.counter0 == dps_slot %}
-                    <div class="absolute top-3 right-3 bg-chaldea-cyan/20 border border-chaldea-cyan text-chaldea-cyan font-tech text-[9px] px-2 py-0.5 rounded tracking-widest font-bold">
-                        PRIMARY DPS CARRY
-                    </div>
-                {% endif %}
+                <div id="carry-badge-{{ forloop.counter0 }}" 
+                     class="absolute top-3 right-3 bg-chaldea-cyan/20 border border-chaldea-cyan text-chaldea-cyan font-tech text-[9px] px-2 py-0.5 rounded tracking-widest font-bold {% if forloop.counter0 != dps_slot %}hidden{% endif %}">
+                    PRIMARY DPS CARRY
+                </div>
 
-                <!-- Top: Servant Selector & Identity -->
                 <div class="space-y-3">
                     <span class="text-[10px] font-tech text-chaldea-cyan tracking-wider block">SLOT 0{{ forloop.counter }} // FRONT UNIT</span>
                     
                     <div class="flex items-center gap-3">
-                        <img src="{{ slot.servant.face_url }}" alt="{{ slot.servant.name }}" class="w-14 h-14 rounded border border-chaldea-border object-cover bg-slate-900 shrink-0">
+                        <img id="slot-face-{{ forloop.counter }}" 
+                             src="{{ slot.servant.face_url }}" 
+                             alt="{{ slot.servant.name }}" 
+                             class="w-14 h-14 rounded border border-chaldea-border object-cover bg-slate-900 shrink-0">
                         
                         <div class="flex-1 min-w-0 relative">
-                            <!-- Hidden input that holds the actual collection_no for form submission -->
                             <input type="hidden" name="slot{{ forloop.counter }}" id="slotInput{{ forloop.counter }}" value="{{ slot.servant.collection_no }}">
 
-                            <!-- Trigger Button -->
                             <button type="button" 
                                     onclick="toggleSlotDropdown('{{ forloop.counter }}')" 
                                     id="slotBtn{{ forloop.counter }}"
                                     class="w-full bg-[#0a0e17] border border-chaldea-border hover:border-chaldea-cyan text-left text-slate-200 font-tech text-xs py-1.5 px-2.5 rounded flex items-center justify-between transition focus:outline-none">
-                                <span class="truncate pr-1">[{{ slot.servant.class_name|slice:":3"|upper }}] {{ slot.servant.name }}</span>
+                                <span id="slotBtnLabel{{ forloop.counter }}" class="truncate pr-1">[{{ slot.servant.class_name|slice:":3"|upper }}] {{ slot.servant.name }}</span>
                                 <span class="text-[9px] text-chaldea-cyan font-mono">&#x25BC;</span>
                             </button>
 
-                            <!-- Searchable Dropdown Overlay -->
                             <div id="slotDropdown{{ forloop.counter }}" 
-                                class="hidden absolute z-50 left-0 top-full mt-1 w-72 bg-[#090d16] border border-chaldea-cyan/50 rounded shadow-[0_4px_20px_rgba(0,0,0,0.85)] p-2">
+                                 class="hidden absolute z-50 left-0 top-full mt-1 w-72 bg-[#090d16] border border-chaldea-cyan/50 rounded shadow-[0_4px_20px_rgba(0,0,0,0.85)] p-2">
                                 
-                                <!-- Search Filter Input -->
                                 <div class="relative mb-2">
                                     <input type="text" 
-                                        id="slotSearch{{ forloop.counter }}" 
-                                        placeholder="Search Spirit Origin..." 
-                                        oninput="filterSlotList('{{ forloop.counter }}')"
-                                        class="w-full bg-[#05080f] border border-chaldea-border text-slate-100 font-mono text-[11px] px-2 py-1.5 rounded focus:outline-none focus:border-chaldea-cyan placeholder-slate-600">
+                                           id="slotSearch{{ forloop.counter }}" 
+                                           placeholder="Search Spirit Origin..." 
+                                           oninput="filterSlotList('{{ forloop.counter }}')"
+                                           class="w-full bg-[#05080f] border border-chaldea-border text-slate-100 font-mono text-[11px] px-2 py-1.5 rounded focus:outline-none focus:border-chaldea-cyan placeholder-slate-600">
                                 </div>
 
-                                <!-- Scrollable List Container -->
                                 <div id="slotList{{ forloop.counter }}" class="max-h-56 overflow-y-auto space-y-1 custom-scrollbar pr-1">
                                     {% for s in all_servants %}
                                     <div class="servant-option flex items-center gap-2 p-1.5 rounded hover:bg-chaldea-cyan/10 hover:border-chaldea-cyan/40 border border-transparent cursor-pointer transition"
-                                        data-name="{{ s.name|lower }}"
-                                        data-class="{{ s.class_name|lower }}"
-                                        data-id="{{ s.collection_no }}"
-                                        onclick="selectServantForSlot('{{ forloop.parentloop.counter }}', '{{ s.collection_no }}')">
+                                         data-name="{{ s.name|lower }}"
+                                         data-class="{{ s.class_name|lower }}"
+                                         data-id="{{ s.collection_no }}"
+                                         onclick="selectServantForSlot('{{ forloop.parentloop.counter }}', '{{ s.collection_no }}', '{{ s.name|escapejs }}', '{{ s.class_name|escapejs }}', '{{ s.face_url|escapejs }}', {{ s.atk_max }})">
                                         <img src="{{ s.face_url }}" class="w-7 h-7 rounded border border-chaldea-border object-cover bg-slate-900 shrink-0">
                                         <div class="min-w-0 flex-1">
                                             <div class="text-[11px] font-tech text-slate-200 truncate leading-tight">{{ s.name }}</div>
@@ -83,16 +78,17 @@
                                 </div>
                             </div>
 
-                            <div class="text-[10px] font-mono text-slate-400 mt-1">ATK {{ slot.servant.atk_max }} | {{ slot.servant.class_name }}</div>
+                            <div id="slot-meta-{{ forloop.counter }}" class="text-[10px] font-mono text-slate-400 mt-1">
+                                ATK {{ slot.servant.atk_max }} | {{ slot.servant.class_name }}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Middle: Per-Slot CE & Append 2 Controls -->
                 <div class="my-4 p-3 bg-[#080c14] border border-chaldea-border/80 rounded space-y-2.5">
                     <div class="flex items-center justify-between">
                         <label class="text-[10px] font-tech text-slate-400">EQUIPPED CE:</label>
-                        <select name="ce{{ forloop.counter }}" onchange="document.getElementById('matrixForm').submit()" class="bg-[#0d131f] border border-chaldea-cyan/40 text-chaldea-cyan font-mono text-[11px] px-2 py-0.5 rounded focus:outline-none">
+                        <select name="ce{{ forloop.counter }}" onchange="syncMatrixTelemetry()" class="bg-[#0d131f] border border-chaldea-cyan/40 text-chaldea-cyan font-mono text-[11px] px-2 py-0.5 rounded focus:outline-none">
                             <option value="0" {% if slot.ce_np == 0 %}selected{% endif %}>0% (Black Grail)</option>
                             <option value="30" {% if slot.ce_np == 30 %}selected{% endif %}>30% (Standard CE)</option>
                             <option value="50" {% if slot.ce_np == 50 %}selected{% endif %}>50% (Event / High CE)</option>
@@ -104,36 +100,39 @@
                     <div class="flex items-center justify-between pt-1 border-t border-chaldea-border/40">
                         <span class="text-[10px] font-tech text-slate-400">APPEND 2 (MANA LOADING):</span>
                         <label class="flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" name="app{{ forloop.counter }}" value="1" onchange="document.getElementById('matrixForm').submit()" {% if slot.append_np > 0 %}checked{% endif %} class="accent-chaldea-cyan w-3.5 h-3.5 rounded bg-black">
-                            <span class="text-[10px] font-mono font-bold {% if slot.append_np > 0 %}text-chaldea-cyan{% else %}text-slate-500{% endif %}">+20%</span>
+                            <input type="checkbox" name="app{{ forloop.counter }}" value="1" onchange="syncMatrixTelemetry()" {% if slot.append_np > 0 %}checked{% endif %} class="accent-chaldea-cyan w-3.5 h-3.5 rounded bg-black">
+                            <span id="app-badge-{{ forloop.counter }}" class="text-[10px] font-mono font-bold {% if slot.append_np > 0 %}text-chaldea-cyan{% else %}text-slate-500{% endif %}">+20%</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- Bottom: Live Turn-1 Gauge Readiness Bar -->
                 <div class="space-y-1.5">
                     <div class="flex justify-between items-center font-tech text-xs">
                         <span class="text-slate-400">TURN 1 GAUGE:</span>
-                        <span class="font-mono font-bold {% if slot.np_ready %}text-emerald-400{% else %}text-amber-400{% endif %}">
+                        <span id="gauge-label-{{ forloop.counter0 }}" class="font-mono font-bold {% if slot.np_ready %}text-emerald-400{% else %}text-amber-400{% endif %}">
                             {{ slot.total_np }}% {% if slot.np_ready %}[ONLINE]{% else %}[DEFICIT]{% endif %}
                         </span>
                     </div>
                     
                     <div class="w-full h-3 bg-black/70 rounded border border-chaldea-border overflow-hidden p-0.5">
-                        <div class="h-full rounded-sm transition-all duration-500 {% if slot.np_ready %}bg-gradient-to-r from-teal-500 to-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]{% else %}bg-gradient-to-r from-amber-600 to-yellow-400{% endif %}" style="width: {{ slot.gauge_fill_pct }}%;"></div>
+                        <div id="gauge-bar-{{ forloop.counter0 }}" 
+                             class="h-full rounded-sm transition-all duration-500 {% if slot.np_ready %}bg-gradient-to-r from-teal-500 to-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]{% else %}bg-gradient-to-r from-amber-600 to-yellow-400{% endif %}" 
+                             style="width: {{ slot.gauge_fill_pct }}%;"></div>
                     </div>
 
                     <div class="text-[9px] font-mono text-slate-400 grid grid-cols-2 gap-x-2 gap-y-1 pt-1.5 border-t border-chaldea-border/40">
-                        <span>CE: <strong class="text-slate-200">+{{ slot.ce_np }}%</strong></span>
-                        <span>APPEND: <strong class="text-slate-200">+{{ slot.append_np }}%</strong></span>
-                        <span>SELF: <strong class="text-amber-400">+{{ slot.self_battery }}%</strong></span>
-                        <span>TEAM/TARGET: <strong class="text-chaldea-cyan">+{{ slot.party_received|add:slot.target_received }}%</strong></span>
+                        <span>CE: <strong id="stat-ce-{{ forloop.counter0 }}" class="text-slate-200">+{{ slot.ce_np }}%</strong></span>
+                        <span>APPEND: <strong id="stat-app-{{ forloop.counter0 }}" class="text-slate-200">+{{ slot.append_np }}%</strong></span>
+                        <span>SELF: <strong id="stat-self-{{ forloop.counter0 }}" class="text-amber-400">+{{ slot.self_battery }}%</strong></span>
+                        <span>TEAM/TARGET: <strong id="stat-team-{{ forloop.counter0 }}" class="text-chaldea-cyan">+{{ slot.party_received|add:slot.target_received }}%</strong></span>
                     </div>
                 </div>
 
-                <!-- Role Assign Button -->
                 <div class="mt-4 pt-3 border-t border-chaldea-border/60">
-                    <button type="button" onclick="document.getElementById('dpsSlotInput').value='{{ forloop.counter0 }}'; document.getElementById('matrixForm').submit();" class="w-full font-tech text-[10px] py-1.5 rounded border {% if forloop.counter0 == dps_slot %}bg-chaldea-cyan text-black font-bold border-chaldea-cyan shadow-[0_0_10px_rgba(0,243,255,0.4)]{% else %}border-chaldea-border text-slate-400 hover:text-chaldea-cyan hover:border-chaldea-cyan/40{% endif %} transition">
+                    <button type="button" 
+                            id="btn-role-{{ forloop.counter0 }}"
+                            onclick="setCarrySlot({{ forloop.counter0 }})" 
+                            class="w-full font-tech text-[10px] py-1.5 rounded border {% if forloop.counter0 == dps_slot %}bg-chaldea-cyan text-black font-bold border-chaldea-cyan shadow-[0_0_10px_rgba(0,243,255,0.4)]{% else %}border-chaldea-border text-slate-400 hover:text-chaldea-cyan hover:border-chaldea-cyan/40{% endif %} transition">
                         {% if forloop.counter0 == dps_slot %}DESIGNATED MAIN CARRY{% else %}TARGET BUFFS TO THIS SLOT{% endif %}
                     </button>
                 </div>
@@ -142,7 +141,6 @@
         </div>
     </form>
 
-    <!-- Steroid Multiplication Curve -->
     <div class="border border-chaldea-border bg-[#0d131f] rounded-lg p-5">
         <div class="font-tech text-xs text-chaldea-cyan tracking-wider border-b border-chaldea-border/80 pb-2 flex justify-between items-center">
             <span>// PRIMARY CARRY STEROID MULTIPLICATION CURVE</span>
@@ -152,34 +150,34 @@
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mt-4 text-center">
             <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded">
                 <span class="block text-[10px] font-tech text-slate-400">TOTAL ATK BUFF</span>
-                <span class="text-base font-mono font-bold text-slate-100">+{{ analysis.buffs.atk_pct }}%</span>
+                <span id="buff-atk" class="text-base font-mono font-bold text-slate-100">+{{ analysis.buffs.atk_pct }}%</span>
             </div>
             <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded">
                 <span class="block text-[10px] font-tech text-slate-400">CARD PERFORMANCE</span>
-                <span class="text-base font-mono font-bold text-chaldea-cyan">+{{ analysis.buffs.card_pct }}%</span>
+                <span id="buff-card" class="text-base font-mono font-bold text-chaldea-cyan">+{{ analysis.buffs.card_pct }}%</span>
             </div>
             <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded">
                 <span class="block text-[10px] font-tech text-slate-400">NP DAMAGE UP</span>
-                <span class="text-base font-mono font-bold text-amber-400">+{{ analysis.buffs.np_pct }}%</span>
+                <span id="buff-np" class="text-base font-mono font-bold text-amber-400">+{{ analysis.buffs.np_pct }}%</span>
             </div>
             <div class="p-3 bg-[#0a0e17] border border-chaldea-cyan/40 rounded shadow-[0_0_12px_rgba(0,243,255,0.15)]">
                 <span class="block text-[10px] font-tech text-chaldea-cyan font-bold">TOTAL MULTIPLIER</span>
-                <span class="text-xl font-mono font-bold text-emerald-400">{{ analysis.buffs.multiplier }}x</span>
+                <span id="buff-multiplier" class="text-xl font-mono font-bold text-emerald-400">{{ analysis.buffs.multiplier }}x</span>
             </div>
             <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded">
                 <span class="block text-[10px] font-tech text-slate-400">MULTIPLICATIVE GAIN</span>
-                <span class="text-base font-mono font-bold text-purple-400">+{{ analysis.buffs.gain_vs_additive }}%</span>
+                <span id="buff-gain" class="text-base font-mono font-bold text-purple-400">+{{ analysis.buffs.gain_vs_additive }}%</span>
             </div>
         </div>
     </div>
 </div>
 
 <script>
+// Toggle Combobox
 function toggleSlotDropdown(slotNum) {
     const dropdown = document.getElementById(`slotDropdown${slotNum}`);
     const isHidden = dropdown.classList.contains('hidden');
     
-    // Close any other open slot dropdowns first
     document.querySelectorAll('[id^="slotDropdown"]').forEach(d => d.classList.add('hidden'));
 
     if (isHidden) {
@@ -191,6 +189,7 @@ function toggleSlotDropdown(slotNum) {
     }
 }
 
+// Live Filter List
 function filterSlotList(slotNum) {
     const query = document.getElementById(`slotSearch${slotNum}`).value.toLowerCase().trim();
     const items = document.querySelectorAll(`#slotList${slotNum} .servant-option`);
@@ -208,12 +207,114 @@ function filterSlotList(slotNum) {
     });
 }
 
-function selectServantForSlot(slotNum, collectionNo) {
+// Select Servant Without Reload
+function selectServantForSlot(slotNum, collectionNo, name, className, faceUrl, atkMax) {
     document.getElementById(`slotInput${slotNum}`).value = collectionNo;
-    document.getElementById('matrixForm').submit();
+    
+    // Update Header Display Immediately
+    document.getElementById(`slot-face-${slotNum}`).src = faceUrl;
+    document.getElementById(`slotBtnLabel${slotNum}`).innerText = `[${className.substring(0, 3).toUpperCase()}] ${name}`;
+    document.getElementById(`slot-meta-${slotNum}`).innerText = `ATK ${atkMax} | ${className}`;
+
+    // Close Dropdown
+    document.getElementById(`slotDropdown${slotNum}`).classList.add('hidden');
+
+    // Sync Telemetry
+    syncMatrixTelemetry();
 }
 
-// Close dropdown if user clicks outside of it
+// Switch DPS Carry Target
+function setCarrySlot(slotIndex) {
+    document.getElementById('dpsSlotInput').value = slotIndex;
+    syncMatrixTelemetry();
+}
+
+// Asynchronous Telemetry Synchronization Engine
+async function syncMatrixTelemetry() {
+    const form = document.getElementById('matrixForm');
+    const formData = new FormData(form);
+    const params = new URLSearchParams(formData);
+
+    // Update browser URL without reloading
+    window.history.replaceState({}, '', `${window.location.pathname}?${params.toString()}`);
+
+    const indicator = document.getElementById('syncIndicator');
+    if (indicator) indicator.classList.add('animate-ping');
+
+    try {
+        const response = await fetch(`${window.location.pathname}?${params.toString()}`, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        });
+
+        if (!response.ok) throw new Error("Telemetry sync interrupted");
+
+        const data = await response.json();
+        const activeDpsSlot = data.dps_slot;
+
+        // Update Slot Cards
+        data.slots.forEach((slot, idx) => {
+            const isCarry = (idx === activeDpsSlot);
+
+            // Card highlight & Carry badge
+            const card = document.getElementById(`slot-card-${idx}`);
+            const badge = document.getElementById(`carry-badge-${idx}`);
+            const roleBtn = document.getElementById(`btn-role-${idx}`);
+
+            if (isCarry) {
+                card.className = "slot-card border border-chaldea-cyan shadow-[0_0_20px_rgba(0,243,255,0.18)] bg-[#0d131f] rounded-lg p-5 flex flex-col justify-between relative overflow-hidden transition-all duration-300";
+                badge.classList.remove('hidden');
+                roleBtn.className = "w-full font-tech text-[10px] py-1.5 rounded border bg-chaldea-cyan text-black font-bold border-chaldea-cyan shadow-[0_0_10px_rgba(0,243,255,0.4)] transition";
+                roleBtn.innerText = "DESIGNATED MAIN CARRY";
+            } else {
+                card.className = "slot-card border border-chaldea-border bg-[#0d131f] rounded-lg p-5 flex flex-col justify-between relative overflow-hidden transition-all duration-300";
+                badge.classList.add('hidden');
+                roleBtn.className = "w-full font-tech text-[10px] py-1.5 rounded border border-chaldea-border text-slate-400 hover:text-chaldea-cyan hover:border-chaldea-cyan/40 transition";
+                roleBtn.innerText = "TARGET BUFFS TO THIS SLOT";
+            }
+
+            // Gauges
+            const gaugeLabel = document.getElementById(`gauge-label-${idx}`);
+            const gaugeBar = document.getElementById(`gauge-bar-${idx}`);
+
+            if (slot.np_ready) {
+                gaugeLabel.className = "font-mono font-bold text-emerald-400";
+                gaugeLabel.innerText = `${slot.total_np}% [ONLINE]`;
+                gaugeBar.className = "h-full rounded-sm transition-all duration-500 bg-gradient-to-r from-teal-500 to-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.8)]";
+            } else {
+                gaugeLabel.className = "font-mono font-bold text-amber-400";
+                gaugeLabel.innerText = `${slot.total_np}% [DEFICIT]`;
+                gaugeBar.className = "h-full rounded-sm transition-all duration-500 bg-gradient-to-r from-amber-600 to-yellow-400";
+            }
+            gaugeBar.style.width = `${slot.gauge_fill_pct}%`;
+
+            // Stat Numbers
+            document.getElementById(`stat-ce-${idx}`).innerText = `+${slot.ce_np}%`;
+            document.getElementById(`stat-app-${idx}`).innerText = `+${slot.append_np}%`;
+            document.getElementById(`stat-self-${idx}`).innerText = `+${slot.self_battery}%`;
+            document.getElementById(`stat-team-${idx}`).innerText = `+${slot.party_received + slot.target_received}%`;
+
+            // Append Checkbox Color Sync
+            const appBadge = document.getElementById(`app-badge-${idx + 1}`);
+            if (appBadge) {
+                appBadge.className = slot.append_np > 0 ? "text-[10px] font-mono font-bold text-chaldea-cyan" : "text-[10px] font-mono font-bold text-slate-500";
+            }
+        });
+
+        // Update Steroid Curve Matrix
+        document.getElementById('buff-atk').innerText = `+${data.buffs.atk_pct}%`;
+        document.getElementById('buff-card').innerText = `+${data.buffs.card_pct}%`;
+        document.getElementById('buff-np').innerText = `+${data.buffs.np_pct}%`;
+        document.getElementById('buff-multiplier').innerText = `${data.buffs.multiplier}x`;
+        document.getElementById('buff-gain').innerText = `+${data.buffs.gain_vs_additive}%`;
+
+    } catch (err) {
+        console.error("Matrix auto-sync failed:", err);
+    } finally {
+        if (indicator) indicator.classList.remove('animate-ping');
+    }
+}
+
+// Close Dropdowns on outside click
 document.addEventListener('click', function(event) {
     if (!event.target.closest('[id^="slotDropdown"]') && !event.target.closest('[id^="slotBtn"]')) {
         document.querySelectorAll('[id^="slotDropdown"]').forEach(d => d.classList.add('hidden'));
