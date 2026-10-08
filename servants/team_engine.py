@@ -1,6 +1,37 @@
 import re
 
 
+# Known Lv 10 signature steroid values for skills lacking explicit percentages in Atlas descriptions
+KNOWN_STEROIDS = {
+    # Oberon
+    "morning lark": {"atk": 0.0, "card": 0.0, "np_dmg": 0.30},        # S1: +30% NP Dmg to Party
+    
+    # Castoria
+    "charismatic vanguard": {"atk": 0.20, "card": 0.0, "np_dmg": 0.0}, # S1: +20% ATK
+    "lake protection": {"atk": 0.0, "card": 0.0, "np_dmg": 0.0},
+    "round of avalon": {"atk": 0.50, "card": 0.0, "np_dmg": 0.30},    # NP: ATK + NP Dmg
+    
+    # Koyanskaya of Light
+    "innovator of light": {"atk": 0.0, "card": 0.0, "np_dmg": 0.0},
+    "aptitude for slaughter (human)": {"atk": 0.0, "card": 0.50, "np_dmg": 0.0}, # S3: +50% Buster
+    
+    # Summer Skadi / Skadi
+    "primordial rune (ocean)": {"atk": 0.20, "card": 0.50, "np_dmg": 0.0}, # +50% Quick, +20% ATK
+    "primordial rune": {"atk": 0.0, "card": 0.50, "np_dmg": 0.0},
+    
+    # Waver (Zhuge Liang)
+    "tactician's command": {"atk": 0.30, "card": 0.0, "np_dmg": 0.0},
+    
+    # Merlin
+    "dreamlike charisma": {"atk": 0.20, "card": 0.0, "np_dmg": 0.0},
+    "hero creation": {"atk": 0.0, "card": 0.50, "np_dmg": 0.0},        # S3: +50% Buster
+    
+    # Black Grail / Common NP Dmg Skills
+    "mana burst": {"atk": 0.0, "card": 0.50, "np_dmg": 0.0},
+    "voyager of the storm": {"atk": 0.17, "card": 0.0, "np_dmg": 0.17},
+    "military tactics": {"atk": 0.0, "card": 0.0, "np_dmg": 0.20},
+}
+
 # Comprehensive registry of battery values for all meta supports & irregular charge values
 KNOWN_SKILL_BATTERIES = {
     # 100% Batteries
@@ -80,28 +111,48 @@ def extract_battery_values(skill_name, skill_detail):
 
     return 0, "none"
 
-def extract_buff_values(skill_detail):
+def extract_buff_values(skill_name, skill_detail):
     """
     Extracts steroid buffs from skill text (ATK Up, Card Performance Up, NP Damage Up).
-    Uses independent if-checks to catch composite buffs in a single skill.
+    Inspects signature database first, then falls back to resilient regex & terminology search.
     """
     buffs = {"atk": 0.0, "card": 0.0, "np_dmg": 0.0}
+    name_clean = (skill_name or "").strip().lower()
+
+    # 1. Match known meta skills
+    for sig_name, val_map in KNOWN_STEROIDS.items():
+        if sig_name in name_clean:
+            return dict(val_map)
+
     if not skill_detail:
         return buffs
 
     detail = skill_detail.lower()
-    matches = re.findall(r'(\d+)%', detail)
-    val = (float(matches[0]) / 100.0) if matches else 0.20
 
+    # Check for percentage pattern if present
+    matches = re.findall(r'(\d+)%', detail)
+    default_val = (float(matches[0]) / 100.0) if matches else 0.20
+
+    # ATK buffs
     if "atk" in detail or "attack" in detail:
-        buffs["atk"] += val
+        buffs["atk"] += default_val
+
+    # Card performance
     if any(c in detail for c in ["buster", "arts", "quick", "card performance"]):
-        buffs["card"] += val
-    if "np damage" in detail or "noble phantasm damage" in detail:
-        buffs["np_dmg"] += val
+        buffs["card"] += (float(matches[0]) / 100.0) if matches else 0.30
+
+    # NP Damage Up variations in game text
+    np_dmg_triggers = [
+        "np damage", 
+        "noble phantasm damage", 
+        "np strength", 
+        "increases np damage", 
+        "noble phantasm strength"
+    ]
+    if any(t in detail for t in np_dmg_triggers):
+        buffs["np_dmg"] += (float(matches[0]) / 100.0) if matches else 0.30
 
     return buffs
-
 
 def analyze_frontline(servants, slot_configs=None, primary_slot=0):
     """
@@ -127,9 +178,12 @@ def analyze_frontline(servants, slot_configs=None, primary_slot=0):
         party_battery_pool += (getattr(s, 'battery_party', 0) or 0)
         target_battery_pool += (getattr(s, 'battery_target', 0) or 0)
 
-        # Steroid accumulation for the primary carry
+        # Accumulate steroids for the party/carry
         for sk in (s.active_skills or []):
-            b = extract_buff_values(sk.get("detail", ""))
+            name = sk.get("name", "")
+            detail = sk.get("detail", "")
+            b = extract_buff_values(name, detail)
+            
             total_buffs["atk"] += b["atk"]
             total_buffs["card"] += b["card"]
             total_buffs["np_dmg"] += b["np_dmg"]
