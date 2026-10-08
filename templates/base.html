@@ -139,12 +139,12 @@
                 <a href="{% url 'servants:compare' %}" class="px-3 py-1.5 rounded border border-transparent hover:border-chaldea-cyan/40 text-slate-300 hover:text-chaldea-cyan transition font-tech text-xs">
                     [ 02 // COMPARE ]
                 </a>
-                <a href="/about/" class="hover:text-chaldea-cyan transition {% if '/about' in request.path %}text-chaldea-cyan border-b-2 border-chaldea-cyan py-4{% endif %}">
-                    [ 03 // ARCHIVE ]
-                </a>
                 <a href="{% url 'servants:team_builder' %}" class="font-tech text-xs tracking-wider text-slate-300 hover:text-chaldea-cyan transition py-1 px-2 rounded hover:bg-slate-800/40">
-                    [ 04 // COMBAT MATRIX ]
-                </a>    
+                    [ 03 // COMBAT MATRIX ]
+                </a>  
+                <a href="/about/" class="hover:text-chaldea-cyan transition {% if '/about' in request.path %}text-chaldea-cyan border-b-2 border-chaldea-cyan py-4{% endif %}">
+                    [ 04 // ARCHIVE ]
+                </a>
             </nav>
 
             <div class="hidden sm:flex items-center gap-2 font-tech text-[10px] text-slate-500 border border-chaldea-border px-2.5 py-1 rounded bg-chaldea-surface/50">
