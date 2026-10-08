@@ -83,89 +83,79 @@ def extract_battery_values(skill_name, skill_detail):
 def extract_buff_values(skill_detail):
     """
     Extracts steroid buffs from skill text (ATK Up, Card Performance Up, NP Damage Up).
+    Uses independent if-checks to catch composite buffs in a single skill.
     """
-
-    buffs = {"atk": 0.0, "card" : 0.0, "np_dmg" : 0.0}
+    buffs = {"atk": 0.0, "card": 0.0, "np_dmg": 0.0}
     if not skill_detail:
         return buffs
 
     detail = skill_detail.lower()
     matches = re.findall(r'(\d+)%', detail)
-    val = (float(matches[0])/ 100.0) if matches else 0.20 #got default fallback of 20%
+    val = (float(matches[0]) / 100.0) if matches else 0.20
 
     if "atk" in detail or "attack" in detail:
         buffs["atk"] += val
-    if any( c in detail for c in ["buster", "arts", "quick", "card performance"]):
+    if any(c in detail for c in ["buster", "arts", "quick", "card performance"]):
         buffs["card"] += val
     if "np damage" in detail or "noble phantasm damage" in detail:
         buffs["np_dmg"] += val
 
     return buffs
 
+
 def analyze_frontline(servants, slot_configs=None, primary_slot=0):
     """
-    Simulates Turn-1 tactical deployment with isolated CE values & Append 2 toggles.
-    slot_configs: list of dicts, e.g. [{'ce_np': 50, 'append2': True}, ...]
+    Evaluates Turn-1 frontline battery readiness and steroid scaling.
+    Uses exact database values: battery_self, battery_party, and battery_target.
     """
     if slot_configs is None:
         slot_configs = [{'ce_np': 50, 'append2': False} for _ in range(len(servants))]
 
     telemetry = []
-
-    #Total battery pool available from the party
     party_battery_pool = 0
     target_battery_pool = 0
-
-    #Global steroid accumulator for the primary carry
-    total_buffs = {"atk": 0.0 , "card" : 0.0, "np_dmg" : 0.0}
+    total_buffs = {"atk": 0.0, "card": 0.0, "np_dmg": 0.0}
 
     for idx, s in enumerate(servants):
-        self_battery = 0
         cfg = slot_configs[idx] if idx < len(slot_configs) else {'ce_np': 0, 'append2': False}
-
         ce_charge = int(cfg.get('ce_np', 0))
         append_charge = 20 if cfg.get('append2', False) else 0
         base_starting_np = ce_charge + append_charge
 
+        # Read exact pre-computed battery integers straight from SQLite
+        s_self = getattr(s, 'battery_self', 0) or 0
+        party_battery_pool += (getattr(s, 'battery_party', 0) or 0)
+        target_battery_pool += (getattr(s, 'battery_target', 0) or 0)
+
+        # Steroid accumulation for the primary carry
         for sk in (s.active_skills or []):
-            name = sk.get("name", "")
-            detail = sk.get("detail", "")
-            amt, scope = extract_battery_values(name, detail)
-
-            if scope == "party":
-                party_battery_pool += amt
-            elif scope == "target":
-                target_battery_pool += amt
-            elif scope == "self":
-                self_battery += amt
-
-            b = extract_buff_values(detail)
+            b = extract_buff_values(sk.get("detail", ""))
             total_buffs["atk"] += b["atk"]
             total_buffs["card"] += b["card"]
             total_buffs["np_dmg"] += b["np_dmg"]
 
         telemetry.append({
             "servant": s,
-            "self_battery": self_battery,
+            "self_battery": s_self,
             "ce_np": ce_charge,
             "append_np": append_charge,
             "party_received": 0,
             "target_received": 0,
             "starting_np": base_starting_np,
-            "total_np": base_starting_np + self_battery
+            "total_np": base_starting_np + s_self
         })
 
-    # Distribute party charge to all 3 slots
+    # Distribute party-wide batteries to all 3 slots
     for item in telemetry:
         item["party_received"] = party_battery_pool
         item["total_np"] += party_battery_pool
 
-    # Distribute targetable battery pool to the designated carry
+    # Funnel all targeted batteries to the designated primary carry
     if 0 <= primary_slot < len(telemetry):
         telemetry[primary_slot]["target_received"] = target_battery_pool
         telemetry[primary_slot]["total_np"] += target_battery_pool
 
-    # Update gauge readiness
+    # Determine NP gauge readiness
     for item in telemetry:
         item["np_ready"] = item["total_np"] >= 100
         item["gauge_fill_pct"] = min(item["total_np"], 100)

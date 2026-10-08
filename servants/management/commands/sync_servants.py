@@ -2,14 +2,64 @@ import requests
 from django.core.management.base import BaseCommand
 from servants.models import Servant
 
+
+def get_current_active_skills(skills):
+    """
+    Atlas Academy exports all historical versions of skills (Rank-Ups/Interludes).
+    This selects the latest upgraded version for each slot (num 1, 2, 3).
+    """
+    slots = {}
+    for s in skills:
+        num = s.get("num")
+        if num in [1, 2, 3]:
+            # Retain the version with the largest ID (most recent upgrade)
+            if num not in slots or s.get("id", 0) > slots[num].get("id", 0):
+                slots[num] = s
+
+    return [slots[k] for k in sorted(slots.keys())]
+
+
+def extract_skill_batteries(current_skills):
+    """
+    Parses exact Level 10 NP charge percentages directly from Atlas Academy function arrays.
+    """
+    b_self = 0
+    b_party = 0
+    b_target = 0
+
+    for s in current_skills:
+        for fn in s.get("functions", []):
+            if fn.get("funcType") == "gainNp":
+                target = str(fn.get("funcTargetType", "self")).lower()
+                svals = fn.get("svals", [])
+                if not svals:
+                    continue
+
+                # Level 10 value is the last entry in svals; scaled by 100 (e.g. 3000 -> 30%)
+                lvl10_data = svals[-1]
+                raw_val = lvl10_data.get("Value", 0)
+                amount = int(raw_val / 100) if raw_val else 0
+
+                if target in ["ptall", "ptallfull"]:
+                    b_party += amount
+                elif target in ["ptone", "ptoneother", "target", "one"]:
+                    b_target += amount
+                elif target in ["ptother", "ptotherfull"]:
+                    b_party += amount
+                else:
+                    b_self += amount
+
+    return b_self, b_party, b_target
+
+
 class Command(BaseCommand):
     help = "Ingests Servant records, including skills, passives, and NP details from Atlas Academy."
 
     def handle(self, *args, **options):
         url = "https://api.atlasacademy.io/export/NA/nice_servant.json"
-        
+
         self.stdout.write(self.style.NOTICE("Connecting to Atlas Academy API..."))
-        
+
         try:
             response = requests.get(url, timeout=60)
             response.raise_for_status()
@@ -43,12 +93,15 @@ class Command(BaseCommand):
             active_np = nps[0] if nps else {}
             np_name = active_np.get("name", "Unknown Noble Phantasm")
             np_detail = active_np.get("detail", "Deals substantial damage to targets.")
-            
+
             raw_np_card = active_np.get("card", "Buster")
             np_card = card_map.get(raw_np_card, str(raw_np_card).capitalize())
-            if np_card == "A": np_card = "Arts"
-            elif np_card == "B": np_card = "Buster"
-            elif np_card == "Q": np_card = "Quick"
+            if np_card == "A":
+                np_card = "Arts"
+            elif np_card == "B":
+                np_card = "Buster"
+            elif np_card == "Q":
+                np_card = "Quick"
 
             raw_target = str(active_np.get("target", "Support")).lower()
             if "aoe" in raw_target or "all" in raw_target:
@@ -58,16 +111,21 @@ class Command(BaseCommand):
             else:
                 np_type = "Support"
 
-            # 3. Active Skills (Primary 3 skills)
+            # 3. Active Skills (Deduplicated to latest Rank-Up for slots 1, 2, 3)
             raw_skills = item.get("skills", [])
+            current_skills = get_current_active_skills(raw_skills)
+
             active_skills = []
-            for s in raw_skills[:3]:
+            for s in current_skills:
                 active_skills.append({
                     "num": s.get("num", 1),
                     "name": s.get("name", "Unknown Skill"),
                     "detail": s.get("detail", "No tactical telemetry recorded."),
                     "icon": s.get("icon", ""),
                 })
+
+            # Calculate deterministic Lv 10 battery figures on current skills
+            bat_self, bat_party, bat_target = extract_skill_batteries(current_skills)
 
             # 4. Passive Skills
             raw_passives = item.get("classPassive", [])
@@ -79,7 +137,7 @@ class Command(BaseCommand):
                     "icon": p.get("icon", ""),
                 })
 
-            # 5. Lore / Profile snippets (From traits and battle comments)
+            # 5. Lore / Profile snippets
             traits = [t.get("name") for t in item.get("traits", []) if t.get("name")]
             profile_lore = [
                 f"Registered Class: {item.get('className', 'Unknown').capitalize()}",
@@ -133,6 +191,9 @@ class Command(BaseCommand):
                 "np_detail": np_detail,
                 "active_skills": active_skills,
                 "passive_skills": passive_skills,
+                "battery_self": bat_self,
+                "battery_party": bat_party,
+                "battery_target": bat_target,
                 "profile_lore": profile_lore,
                 "param_str": str_rank,
                 "param_end": end_rank,

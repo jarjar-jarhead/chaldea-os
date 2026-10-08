@@ -48,6 +48,11 @@ class Servant(models.Model):
     art_stage3 = models.URLField(max_length=500, blank=True, null=True)
     art_stage4 = models.URLField(max_length=500, blank=True, null=True)
 
+    # Pre-calculated Level 10 Battery Telemetry (in raw percentages: 20, 30, 50, 100)
+    battery_self = models.IntegerField(default=0, help_text="Total personal self battery at skill level 10")
+    battery_party = models.IntegerField(default=0, help_text="Total party-wide NP battery at skill level 10")
+    battery_target = models.IntegerField(default=0, help_text="Total targeted ally NP battery at skill level 10")
+
     def __str__(self):
         return f"[{self.collection_no}] {self.name} ({self.class_name})"
 

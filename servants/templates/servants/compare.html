@@ -4,6 +4,21 @@
 
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #060911;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #00f3ff40;
+        border-radius: 2px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #00f3ff;
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -17,16 +32,9 @@
         <p class="text-xs text-slate-400 mt-0.5">Dual Saint Graph Differential Analysis Protocol</p>
     </div>
 
-    <!-- Dual Servant Selector Form with Typeahead Autocomplete -->
-    <form method="GET" action="{% url 'servants:compare' %}" class="grid grid-cols-1 md:grid-cols-12 gap-3 p-4 border border-chaldea-border bg-[#0d131f] rounded-lg font-tech text-xs">
+    <!-- Dual Servant Selector Form with Interactive Combobox Decks -->
+    <form method="GET" action="{% url 'servants:compare' %}" id="compareForm" class="grid grid-cols-1 md:grid-cols-12 gap-4 p-4 border border-chaldea-border bg-[#0d131f] rounded-lg font-tech text-xs">
         
-        <!-- Shared Autocomplete Catalog -->
-        <datalist id="servant-catalog">
-            {% for s in servant_options %}
-                <option data-id="{{ s.collection_no }}" value="#{{ s.collection_no|stringformat:'03d' }} {{ s.name }} ({{ s.class_name }})"></option>
-            {% endfor %}
-        </datalist>
-
         <!-- Slot Alpha Selector -->
         <div class="md:col-span-5 flex flex-col gap-1.5 relative">
             <label class="text-chaldea-cyan font-bold tracking-wide flex items-center gap-2">
@@ -34,17 +42,55 @@
                 ORIGIN ALPHA
             </label>
             
-            <input 
-                type="text" 
-                list="servant-catalog" 
-                id="search_a" 
-                placeholder="Type name, class, or #ID..." 
-                autocomplete="off"
-                value="{% if servant_a %}#{{ servant_a.collection_no|stringformat:'03d' }} {{ servant_a.name }} ({{ servant_a.class_name }}){% endif %}"
-                class="w-full bg-[#0a0e17] border border-chaldea-border px-3 py-2 rounded text-slate-200 placeholder-slate-600 focus:outline-none focus:border-chaldea-cyan"
-                oninput="syncHiddenId('search_a', 'servant_a_id')"
-            >
             <input type="hidden" name="servant_a" id="servant_a_id" value="{{ servant_a.collection_no|default:'' }}">
+            
+            <!-- Trigger Button -->
+            <button type="button" 
+                    id="btn_slot_a"
+                    onclick="toggleCompareDropdown('a')" 
+                    class="w-full bg-[#0a0e17] border border-chaldea-border hover:border-chaldea-cyan text-left text-slate-200 font-tech text-xs py-2 px-3 rounded flex items-center justify-between transition focus:outline-none">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    {% if servant_a %}
+                        <img src="{{ servant_a.face_url }}" class="w-5 h-5 rounded border border-chaldea-border object-cover shrink-0">
+                        <span class="truncate">#{{ servant_a.collection_no|stringformat:'03d' }} {{ servant_a.name }} ({{ servant_a.class_name }})</span>
+                    {% else %}
+                        <span class="text-slate-500">// SELECT SPIRIT ORIGIN ALPHA...</span>
+                    {% endif %}
+                </div>
+                <span class="text-[9px] text-chaldea-cyan font-mono pl-1">&#x25BC;</span>
+            </button>
+
+            <!-- Searchable Dropdown Overlay Alpha -->
+            <div id="dropdown_slot_a" 
+                 class="hidden absolute z-50 left-0 top-full mt-1 w-full bg-[#090d16] border border-chaldea-cyan/50 rounded-lg shadow-[0_8px_30px_rgba(0,0,0,0.85)] p-2">
+                
+                <div class="relative mb-2">
+                    <input type="text" 
+                           id="search_slot_a" 
+                           placeholder="Type name, class, or #ID..." 
+                           autocomplete="off"
+                           oninput="filterCompareList('a')"
+                           class="w-full bg-[#05080f] border border-chaldea-border text-slate-100 font-mono text-[11px] px-2.5 py-1.5 rounded focus:outline-none focus:border-chaldea-cyan placeholder-slate-600">
+                </div>
+
+                <div id="list_slot_a" class="max-h-60 overflow-y-auto space-y-1 custom-scrollbar pr-1">
+                    {% for s in servant_options %}
+                    <div class="servant-opt-item flex items-center gap-2.5 p-1.5 rounded hover:bg-chaldea-cyan/15 hover:border-chaldea-cyan/40 border border-transparent cursor-pointer transition"
+                         data-name="{{ s.name|lower }}"
+                         data-class="{{ s.class_name|lower }}"
+                         data-id="{{ s.collection_no }}"
+                         data-label="#{{ s.collection_no|stringformat:'03d' }} {{ s.name }} ({{ s.class_name }})"
+                         data-img="{{ s.face_url }}"
+                         onclick="selectCompareServant('a', '{{ s.collection_no }}', '{{ s.name|escapejs }}', '{{ s.class_name|escapejs }}', '{{ s.face_url|escapejs }}')">
+                        <img src="{{ s.face_url }}" class="w-7 h-7 rounded border border-chaldea-border object-cover bg-slate-900 shrink-0">
+                        <div class="min-w-0 flex-1">
+                            <div class="text-[11px] font-tech text-slate-200 truncate leading-tight">{{ s.name }}</div>
+                            <div class="text-[9px] font-mono text-slate-500">#{{ s.collection_no|stringformat:'03d' }} &bull; {{ s.class_name }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
 
         <!-- Submit Button -->
@@ -61,17 +107,55 @@
                 ORIGIN BETA
             </label>
             
-            <input 
-                type="text" 
-                list="servant-catalog" 
-                id="search_b" 
-                placeholder="Type name, class, or #ID..." 
-                autocomplete="off"
-                value="{% if servant_b %}#{{ servant_b.collection_no|stringformat:'03d' }} {{ servant_b.name }} ({{ servant_b.class_name }}){% endif %}"
-                class="w-full bg-[#0a0e17] border border-chaldea-border px-3 py-2 rounded text-slate-200 placeholder-slate-600 focus:outline-none focus:border-chaldea-amber"
-                oninput="syncHiddenId('search_b', 'servant_b_id')"
-            >
             <input type="hidden" name="servant_b" id="servant_b_id" value="{{ servant_b.collection_no|default:'' }}">
+            
+            <!-- Trigger Button -->
+            <button type="button" 
+                    id="btn_slot_b"
+                    onclick="toggleCompareDropdown('b')" 
+                    class="w-full bg-[#0a0e17] border border-chaldea-border hover:border-chaldea-amber text-left text-slate-200 font-tech text-xs py-2 px-3 rounded flex items-center justify-between transition focus:outline-none">
+                <div class="flex items-center gap-2.5 min-w-0">
+                    {% if servant_b %}
+                        <img src="{{ servant_b.face_url }}" class="w-5 h-5 rounded border border-chaldea-border object-cover shrink-0">
+                        <span class="truncate">#{{ servant_b.collection_no|stringformat:'03d' }} {{ servant_b.name }} ({{ servant_b.class_name }})</span>
+                    {% else %}
+                        <span class="text-slate-500">// SELECT SPIRIT ORIGIN BETA...</span>
+                    {% endif %}
+                </div>
+                <span class="text-[9px] text-chaldea-amber font-mono pl-1">&#x25BC;</span>
+            </button>
+
+            <!-- Searchable Dropdown Overlay Beta -->
+            <div id="dropdown_slot_b" 
+                 class="hidden absolute z-50 left-0 top-full mt-1 w-full bg-[#090d16] border border-chaldea-amber/50 rounded-lg shadow-[0_8px_30px_rgba(0,0,0,0.85)] p-2">
+                
+                <div class="relative mb-2">
+                    <input type="text" 
+                           id="search_slot_b" 
+                           placeholder="Type name, class, or #ID..." 
+                           autocomplete="off"
+                           oninput="filterCompareList('b')"
+                           class="w-full bg-[#05080f] border border-chaldea-border text-slate-100 font-mono text-[11px] px-2.5 py-1.5 rounded focus:outline-none focus:border-chaldea-amber placeholder-slate-600">
+                </div>
+
+                <div id="list_slot_b" class="max-h-60 overflow-y-auto space-y-1 custom-scrollbar pr-1">
+                    {% for s in servant_options %}
+                    <div class="servant-opt-item flex items-center gap-2.5 p-1.5 rounded hover:bg-chaldea-amber/15 hover:border-chaldea-amber/40 border border-transparent cursor-pointer transition"
+                         data-name="{{ s.name|lower }}"
+                         data-class="{{ s.class_name|lower }}"
+                         data-id="{{ s.collection_no }}"
+                         data-label="#{{ s.collection_no|stringformat:'03d' }} {{ s.name }} ({{ s.class_name }})"
+                         data-img="{{ s.face_url }}"
+                         onclick="selectCompareServant('b', '{{ s.collection_no }}', '{{ s.name|escapejs }}', '{{ s.class_name|escapejs }}', '{{ s.face_url|escapejs }}')">
+                        <img src="{{ s.face_url }}" class="w-7 h-7 rounded border border-chaldea-border object-cover bg-slate-900 shrink-0">
+                        <div class="min-w-0 flex-1">
+                            <div class="text-[11px] font-tech text-slate-200 truncate leading-tight">{{ s.name }}</div>
+                            <div class="text-[9px] font-mono text-slate-500">#{{ s.collection_no|stringformat:'03d' }} &bull; {{ s.class_name }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
 
     </form>
@@ -179,21 +263,21 @@
                 
                 <div class="space-y-2">
                     <div class="flex justify-between items-center bg-[#0a0e17] px-3 py-2 rounded border border-chaldea-border/60">
-                        <span class="text-slate-400">Δ MAX ATK:</span>
+                        <span class="text-slate-400">&Delta; MAX ATK:</span>
                         <span class="font-bold {% if diff.atk_diff > 0 %}text-chaldea-cyan{% elif diff.atk_diff < 0 %}text-chaldea-amber{% else %}text-slate-400{% endif %}">
                             {% if diff.atk_diff > 0 %}+{% endif %}{{ diff.atk_diff }}
                         </span>
                     </div>
 
                     <div class="flex justify-between items-center bg-[#0a0e17] px-3 py-2 rounded border border-chaldea-border/60">
-                        <span class="text-slate-400">Δ MAX HP:</span>
+                        <span class="text-slate-400">&Delta; MAX HP:</span>
                         <span class="font-bold {% if diff.hp_diff > 0 %}text-chaldea-cyan{% elif diff.hp_diff < 0 %}text-chaldea-amber{% else %}text-slate-400{% endif %}">
                             {% if diff.hp_diff > 0 %}+{% endif %}{{ diff.hp_diff }}
                         </span>
                     </div>
 
                     <div class="flex justify-between items-center bg-[#0a0e17] px-3 py-2 rounded border border-chaldea-border/60">
-                        <span class="text-slate-400">Δ DEPLOYMENT COST:</span>
+                        <span class="text-slate-400">&Delta; DEPLOYMENT COST:</span>
                         <span class="font-bold {% if diff.cost_diff < 0 %}text-chaldea-cyan{% elif diff.cost_diff > 0 %}text-chaldea-amber{% else %}text-slate-400{% endif %}">
                             {% if diff.cost_diff > 0 %}+{% endif %}{{ diff.cost_diff }}
                         </span>
@@ -317,30 +401,97 @@
         }
     }
 
-    // Markdown Parser (converts **bold** into styled cyan headers and * into bullets)
+    // Interactive Dropdown Combobox Controllers
+    function toggleCompareDropdown(slot) {
+        const dropdown = document.getElementById(`dropdown_slot_${slot}`);
+        const isHidden = dropdown.classList.contains('hidden');
+
+        // Close the other dropdown
+        const otherSlot = slot === 'a' ? 'b' : 'a';
+        document.getElementById(`dropdown_slot_${otherSlot}`).classList.add('hidden');
+
+        if (isHidden) {
+            dropdown.classList.remove('hidden');
+            const searchInput = document.getElementById(`search_slot_${slot}`);
+            searchInput.value = '';
+            filterCompareList(slot);
+            setTimeout(() => searchInput.focus(), 50);
+        } else {
+            dropdown.classList.add('hidden');
+        }
+    }
+
+    function filterCompareList(slot) {
+        const query = document.getElementById(`search_slot_${slot}`).value.toLowerCase().trim();
+        const items = document.querySelectorAll(`#list_slot_${slot} .servant-opt-item`);
+
+        items.forEach(item => {
+            const name = item.getAttribute('data-name') || '';
+            const sClass = item.getAttribute('data-class') || '';
+            const id = item.getAttribute('data-id') || '';
+
+            if (name.includes(query) || sClass.includes(query) || id.includes(query)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    }
+
+    function selectCompareServant(slot, collectionNo, name, className, faceUrl) {
+        // Set hidden form ID
+        document.getElementById(`servant_${slot}_id`).value = collectionNo;
+
+        // Update trigger button presentation
+        const padId = String(collectionNo).padStart(3, '0');
+        const btn = document.getElementById(`btn_slot_${slot}`);
+        btn.innerHTML = `
+            <div class="flex items-center gap-2.5 min-w-0">
+                <img src="${faceUrl}" class="w-5 h-5 rounded border border-chaldea-border object-cover shrink-0">
+                <span class="truncate">#${padId} ${name} (${className})</span>
+            </div>
+            <span class="text-[9px] ${slot === 'a' ? 'text-chaldea-cyan' : 'text-chaldea-amber'} font-mono pl-1">&#x25BC;</span>
+        `;
+
+        // Hide dropdown
+        document.getElementById(`dropdown_slot_${slot}`).classList.add('hidden');
+    }
+
+    // Dismiss dropdowns on external clicks
+    document.addEventListener('click', function(event) {
+        const isSlotA = event.target.closest('#dropdown_slot_a') || event.target.closest('#btn_slot_a');
+        const isSlotB = event.target.closest('#dropdown_slot_b') || event.target.closest('#btn_slot_b');
+
+        if (!isSlotA) {
+            const dropA = document.getElementById('dropdown_slot_a');
+            if (dropA) dropA.classList.add('hidden');
+        }
+        if (!isSlotB) {
+            const dropB = document.getElementById('dropdown_slot_b');
+            if (dropB) dropB.classList.add('hidden');
+        }
+    });
+
+    // Markdown Parser
     function formatChaldeaMarkdown(raw) {
         let clean = raw
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .replace(/>/g, "&gt;");
 
-        // Format Section Headers
         clean = clean.replace(/\*\*(OPERATIONAL NICHE &amp; ROLE|KIT &amp; SYNERGY DIFFERENTIAL|TACTICAL DEPLOYMENT DIRECTIVE)\*\*/gi, 
             '<div class="hud-header text-chaldea-cyan font-tech text-xs tracking-wider mt-3 mb-1 pb-0.5 border-b border-chaldea-cyan/30 font-bold">// $1</div>');
         
         clean = clean.replace(/^(OPERATIONAL NICHE &amp; ROLE|KIT &amp; SYNERGY DIFFERENTIAL|TACTICAL DEPLOYMENT DIRECTIVE)$/gmi, 
             '<div class="hud-header text-chaldea-cyan font-tech text-xs tracking-wider mt-3 mb-1 pb-0.5 border-b border-chaldea-cyan/30 font-bold">// $1</div>');
 
-        // Bold highlights
         clean = clean.replace(/\*\*(.*?)\*\*/g, '<strong class="text-slate-100 font-bold">$1</strong>');
-        
-        // Bullet arrows
         clean = clean.replace(/^\s*\*\s+(.*)$/gm, '<div class="hud-bullet flex items-start gap-1.5 pl-1 py-0.5"><span class="text-chaldea-cyan font-mono text-[10px]">></span><span>$1</span></div>');
 
         return clean.replace(/\n\n/g, '<div class="h-2"></div>');
     }
 
-    // High-speed Teletype Streamer with Tag-Safe Streaming
+    // High-speed Teletype Streamer
     function streamTerminalText(containerElement, htmlContent, speed = 8) {
         return new Promise((resolve) => {
             containerElement.innerHTML = '';
@@ -365,7 +516,6 @@
                     return;
                 }
 
-                // If encountering an HTML tag, jump ahead to its closing bracket '>' instantly
                 if (htmlContent[cursorIndex] === '<') {
                     const tagEndIndex = htmlContent.indexOf('>', cursorIndex);
                     if (tagEndIndex !== -1) {
@@ -374,7 +524,6 @@
                         cursorIndex++;
                     }
                 } else {
-                    // Advance by small chunks (words or characters) for a crisp teletype feel
                     cursorIndex++;
                 }
 
@@ -412,7 +561,6 @@
         try {
             const response = await fetch(`/compare/ai/?servant_a=${encodeURIComponent(servantA)}&servant_b=${encodeURIComponent(servantB)}`);
             
-            // Defend against raw HTML error pages from Render/Gunicorn
             const contentType = response.headers.get("content-type");
             if (!contentType || !contentType.includes("application/json")) {
                 throw new Error(`Satellite transmission interrupted (${response.status} ${response.statusText}).`);
@@ -520,27 +668,5 @@
             }
         });
     });
-
-    // Maps the user's typed string back to the collection_no ID
-    function syncHiddenId(inputId, hiddenId) {
-        const val = document.getElementById(inputId).value.trim();
-        const hiddenField = document.getElementById(hiddenId);
-        
-        const matchOption = document.querySelector(`#servant-catalog option[value="${CSS.escape(val)}"]`);
-        if (matchOption) {
-            hiddenField.value = matchOption.getAttribute('data-id');
-            return;
-        }
-
-        const numMatch = val.match(/^#?(\d+)/);
-        if (numMatch) {
-            hiddenField.value = parseInt(numMatch[1], 10);
-            return;
-        }
-
-        if (!val) {
-            hiddenField.value = '';
-        }
-    }
 </script>
 {% endblock %}
