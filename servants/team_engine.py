@@ -1,36 +1,33 @@
 import re
 
-
-# Known Lv 10 signature steroid values for skills lacking explicit percentages in Atlas descriptions
+# Known Lv 10 signature steroid values with card-specific classifications
 KNOWN_STEROIDS = {
     # Oberon
-    "morning lark": {"atk": 0.0, "card": 0.0, "np_dmg": 0.30},        # S1: +30% NP Dmg to Party
+    "morning lark": {"atk": 0.0, "buster": 0.0, "arts": 0.0, "quick": 0.0, "np_dmg": 0.30},        # S1: +30% NP Dmg to Party
     
-    # Castoria
-    "charismatic vanguard": {"atk": 0.20, "card": 0.0, "np_dmg": 0.0}, # S1: +20% ATK
-    "lake protection": {"atk": 0.0, "card": 0.0, "np_dmg": 0.0},
-    "round of avalon": {"atk": 0.50, "card": 0.0, "np_dmg": 0.30},    # NP: ATK + NP Dmg
+    # Castoria (Arts Meta)
+    "charismatic vanguard": {"atk": 0.20, "buster": 0.0, "arts": 0.0, "quick": 0.0, "np_dmg": 0.0}, # S1: +20% ATK
+    "lake protection": {"atk": 0.0, "buster": 0.0, "arts": 0.0, "quick": 0.0, "np_dmg": 0.0},
+    "round of avalon": {"atk": 0.50, "buster": 0.0, "arts": 0.0, "quick": 0.0, "np_dmg": 0.30},    # NP: ATK + NP Dmg
     
-    # Koyanskaya of Light
-    "innovator of light": {"atk": 0.0, "card": 0.0, "np_dmg": 0.0},
-    "aptitude for slaughter (human)": {"atk": 0.0, "card": 0.50, "np_dmg": 0.0}, # S3: +50% Buster
+    # Koyanskaya of Light (Buster Meta)
+    "innovator of light": {"atk": 0.0, "buster": 0.0, "arts": 0.0, "quick": 0.0, "np_dmg": 0.0},
+    "aptitude for slaughter (human)": {"atk": 0.0, "buster": 0.50, "arts": 0.0, "quick": 0.0, "np_dmg": 0.0}, # S3: +50% Buster
     
-    # Summer Skadi / Skadi
-    "primordial rune (ocean)": {"atk": 0.20, "card": 0.50, "np_dmg": 0.0}, # +50% Quick, +20% ATK
-    "primordial rune": {"atk": 0.0, "card": 0.50, "np_dmg": 0.0},
+    # Summer Skadi / Skadi (Quick Meta)
+    "primordial rune (ocean)": {"atk": 0.20, "buster": 0.0, "arts": 0.0, "quick": 0.50, "np_dmg": 0.0}, # S1/S2: +50% Quick, +20% ATK
+    "primordial rune": {"atk": 0.0, "buster": 0.0, "arts": 0.0, "quick": 0.50, "np_dmg": 0.0},
     
-    # Waver (Zhuge Liang)
-    "tactician's command": {"atk": 0.30, "card": 0.0, "np_dmg": 0.0},
+    # Merlin (Buster Meta)
+    "dreamlike charisma": {"atk": 0.20, "buster": 0.0, "arts": 0.0, "quick": 0.0, "np_dmg": 0.0},
+    "hero creation": {"atk": 0.0, "buster": 0.50, "arts": 0.0, "quick": 0.0, "np_dmg": 0.0},        # S3: +50% Buster
     
-    # Merlin
-    "dreamlike charisma": {"atk": 0.20, "card": 0.0, "np_dmg": 0.0},
-    "hero creation": {"atk": 0.0, "card": 0.50, "np_dmg": 0.0},        # S3: +50% Buster
-    
-    # Black Grail / Common NP Dmg Skills
-    "mana burst": {"atk": 0.0, "card": 0.50, "np_dmg": 0.0},
-    "voyager of the storm": {"atk": 0.17, "card": 0.0, "np_dmg": 0.17},
-    "military tactics": {"atk": 0.0, "card": 0.0, "np_dmg": 0.20},
+    # Common Dual/Generic Skills
+    "mana burst": {"atk": 0.0, "buster": 0.50, "arts": 0.0, "quick": 0.0, "np_dmg": 0.0},
+    "voyager of the storm": {"atk": 0.17, "buster": 0.0, "arts": 0.0, "quick": 0.0, "np_dmg": 0.17},
+    "military tactics": {"atk": 0.0, "buster": 0.0, "arts": 0.0, "quick": 0.0, "np_dmg": 0.20},
 }
+
 
 # Comprehensive registry of battery values for all meta supports & irregular charge values
 KNOWN_SKILL_BATTERIES = {
@@ -113,13 +110,13 @@ def extract_battery_values(skill_name, skill_detail):
 
 def extract_buff_values(skill_name, skill_detail):
     """
-    Extracts steroid buffs from skill text (ATK Up, Card Performance Up, NP Damage Up).
-    Inspects signature database first, then falls back to resilient regex & terminology search.
+    Extracts steroid buffs from skill name and text.
+    Separates card buffs into explicit buster, arts, and quick bins.
     """
-    buffs = {"atk": 0.0, "card": 0.0, "np_dmg": 0.0}
+    buffs = {"atk": 0.0, "buster": 0.0, "arts": 0.0, "quick": 0.0, "np_dmg": 0.0}
     name_clean = (skill_name or "").strip().lower()
 
-    # 1. Match known meta skills
+    # 1. Match known signature skills
     for sig_name, val_map in KNOWN_STEROIDS.items():
         if sig_name in name_clean:
             return dict(val_map)
@@ -128,27 +125,29 @@ def extract_buff_values(skill_name, skill_detail):
         return buffs
 
     detail = skill_detail.lower()
-
-    # Check for percentage pattern if present
     matches = re.findall(r'(\d+)%', detail)
     default_val = (float(matches[0]) / 100.0) if matches else 0.20
+    card_val = (float(matches[0]) / 100.0) if matches else 0.30
 
     # ATK buffs
     if "atk" in detail or "attack" in detail:
         buffs["atk"] += default_val
 
-    # Card performance
-    if any(c in detail for c in ["buster", "arts", "quick", "card performance"]):
-        buffs["card"] += (float(matches[0]) / 100.0) if matches else 0.30
+    # Specific Card Performance
+    if "buster" in detail:
+        buffs["buster"] += card_val
+    if "arts" in detail:
+        buffs["arts"] += card_val
+    if "quick" in detail:
+        buffs["quick"] += card_val
+    if "card performance" in detail and not any(c in detail for c in ["buster", "arts", "quick"]):
+        # Universal rainbow buff (e.g. Voyager of the Storm variants)
+        buffs["buster"] += card_val
+        buffs["arts"] += card_val
+        buffs["quick"] += card_val
 
-    # NP Damage Up variations in game text
-    np_dmg_triggers = [
-        "np damage", 
-        "noble phantasm damage", 
-        "np strength", 
-        "increases np damage", 
-        "noble phantasm strength"
-    ]
+    # NP Damage Up
+    np_dmg_triggers = ["np damage", "noble phantasm damage", "np strength", "increases np damage"]
     if any(t in detail for t in np_dmg_triggers):
         buffs["np_dmg"] += (float(matches[0]) / 100.0) if matches else 0.30
 
@@ -156,8 +155,8 @@ def extract_buff_values(skill_name, skill_detail):
 
 def analyze_frontline(servants, slot_configs=None, primary_slot=0):
     """
-    Evaluates Turn-1 frontline battery readiness and steroid scaling.
-    Uses exact database values: battery_self, battery_party, and battery_target.
+    Simulates Turn-1 tactical deployment with card color affinity gating.
+    Only card buffs matching the Primary Carry's NP card type scale damage.
     """
     if slot_configs is None:
         slot_configs = [{'ce_np': 50, 'append2': False} for _ in range(len(servants))]
@@ -165,7 +164,14 @@ def analyze_frontline(servants, slot_configs=None, primary_slot=0):
     telemetry = []
     party_battery_pool = 0
     target_battery_pool = 0
-    total_buffs = {"atk": 0.0, "card": 0.0, "np_dmg": 0.0}
+
+    # Aggregated raw buffs from all 3 members
+    raw_buffs = {"atk": 0.0, "buster": 0.0, "arts": 0.0, "quick": 0.0, "np_dmg": 0.0}
+
+    # Identify Primary Carry and their NP Card Type
+    carry = servants[primary_slot] if (0 <= primary_slot < len(servants)) else (servants[0] if servants else None)
+    carry_np_card = getattr(carry, 'np_card', 'Buster').capitalize() if carry else "Buster"
+    carry_card_key = carry_np_card.lower()  # "buster", "arts", or "quick"
 
     for idx, s in enumerate(servants):
         cfg = slot_configs[idx] if idx < len(slot_configs) else {'ce_np': 0, 'append2': False}
@@ -173,20 +179,21 @@ def analyze_frontline(servants, slot_configs=None, primary_slot=0):
         append_charge = 20 if cfg.get('append2', False) else 0
         base_starting_np = ce_charge + append_charge
 
-        # Read exact pre-computed battery integers straight from SQLite
         s_self = getattr(s, 'battery_self', 0) or 0
         party_battery_pool += (getattr(s, 'battery_party', 0) or 0)
         target_battery_pool += (getattr(s, 'battery_target', 0) or 0)
 
-        # Accumulate steroids for the party/carry
+        # Extract kit buffs
         for sk in (s.active_skills or []):
             name = sk.get("name", "")
             detail = sk.get("detail", "")
             b = extract_buff_values(name, detail)
-            
-            total_buffs["atk"] += b["atk"]
-            total_buffs["card"] += b["card"]
-            total_buffs["np_dmg"] += b["np_dmg"]
+
+            raw_buffs["atk"] += b["atk"]
+            raw_buffs["buster"] += b["buster"]
+            raw_buffs["arts"] += b["arts"]
+            raw_buffs["quick"] += b["quick"]
+            raw_buffs["np_dmg"] += b["np_dmg"]
 
         telemetry.append({
             "servant": s,
@@ -199,28 +206,33 @@ def analyze_frontline(servants, slot_configs=None, primary_slot=0):
             "total_np": base_starting_np + s_self
         })
 
-    # Distribute party-wide batteries to all 3 slots
+    # Distribute Party Batteries
     for item in telemetry:
         item["party_received"] = party_battery_pool
         item["total_np"] += party_battery_pool
 
-    # Funnel all targeted batteries to the designated primary carry
+    # Distribute Targeted Batteries to designated Primary Carry
     if 0 <= primary_slot < len(telemetry):
         telemetry[primary_slot]["target_received"] = target_battery_pool
         telemetry[primary_slot]["total_np"] += target_battery_pool
 
-    # Determine NP gauge readiness
     for item in telemetry:
         item["np_ready"] = item["total_np"] >= 100
         item["gauge_fill_pct"] = min(item["total_np"], 100)
 
-    # Multiplicative Buff Scaling: (1 + ATK) * (1 + Card) * (1 + NP Damage)
+    # Card Affinity Matching:
+    # Only card buffs matching carry_card_key will boost NP damage
+    applicable_card_buff = raw_buffs.get(carry_card_key, 0.0)
+    
+    # Calculate non-effective/wasted card buffs for HUD telemetry diagnostics
+    wasted_card_buffs = {k: v for k, v in raw_buffs.items() if k in ["buster", "arts", "quick"] and k != carry_card_key and v > 0}
+
     multiplicative_factor = (
-        (1.0 + total_buffs["atk"]) *
-        (1.0 + total_buffs["card"]) *
-        (1.0 + total_buffs["np_dmg"])
+        (1.0 + raw_buffs["atk"]) *
+        (1.0 + applicable_card_buff) *
+        (1.0 + raw_buffs["np_dmg"])
     )
-    additive_factor = 1.0 + total_buffs["atk"] + total_buffs["card"] + total_buffs["np_dmg"]
+    additive_factor = 1.0 + raw_buffs["atk"] + applicable_card_buff + raw_buffs["np_dmg"]
     multiplicative_gain_pct = (
         round(((multiplicative_factor - additive_factor) / additive_factor) * 100, 1)
         if additive_factor > 0 else 0.0
@@ -231,10 +243,13 @@ def analyze_frontline(servants, slot_configs=None, primary_slot=0):
         "party_battery_pool": party_battery_pool,
         "target_battery_pool": target_battery_pool,
         "primary_slot": primary_slot,
+        "carry_np_card": carry_np_card,
         "buffs": {
-            "atk_pct": int(total_buffs["atk"] * 100),
-            "card_pct": int(total_buffs["card"] * 100),
-            "np_pct": int(total_buffs["np_dmg"] * 100),
+            "atk_pct": int(raw_buffs["atk"] * 100),
+            "card_pct": int(applicable_card_buff * 100),
+            "card_type": carry_np_card,
+            "has_mismatch": len(wasted_card_buffs) > 0,
+            "np_pct": int(raw_buffs["np_dmg"] * 100),
             "multiplier": round(multiplicative_factor, 2),
             "gain_vs_additive": multiplicative_gain_pct
         }

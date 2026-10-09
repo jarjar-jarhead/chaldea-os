@@ -215,19 +215,20 @@ def team_builder_view(request):
         for item in analysis["slots"]:
             srv = item["servant"]
             slots_payload.append({
-                "collection_no": srv.collection_no,
-                "name": srv.name,
-                "class_name": srv.class_name,
-                "face_url": srv.face_url,
-                "atk_max": srv.atk_max,
-                "total_np": item["total_np"],
-                "gauge_fill_pct": item["gauge_fill_pct"],
-                "np_ready": item["np_ready"],
-                "ce_np": item["ce_np"],
-                "append_np": item["append_np"],
-                "self_battery": item["self_battery"],
-                "party_received": item["party_received"],
-                "target_received": item["target_received"],
+            "collection_no": srv.collection_no,
+            "name": srv.name,
+            "class_name": srv.class_name,
+            "face_url": srv.face_url,
+            "atk_max": srv.atk_max,
+            "np_card": srv.np_card, 
+            "total_np": item["total_np"],
+            "gauge_fill_pct": item["gauge_fill_pct"],
+            "np_ready": item["np_ready"],
+            "ce_np": item["ce_np"],
+            "append_np": item["append_np"],
+            "self_battery": item["self_battery"],
+            "party_received": item["party_received"],
+            "target_received": item["target_received"],
             })
         return JsonResponse({
             "slots": slots_payload,

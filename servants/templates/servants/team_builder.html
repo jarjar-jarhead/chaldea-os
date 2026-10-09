@@ -34,10 +34,22 @@
                     <span class="text-[10px] font-tech text-chaldea-cyan tracking-wider block">SLOT 0{{ forloop.counter }} // FRONT UNIT</span>
                     
                     <div class="flex items-center gap-3">
-                        <img id="slot-face-{{ forloop.counter }}" 
-                             src="{{ slot.servant.face_url }}" 
-                             alt="{{ slot.servant.name }}" 
-                             class="w-14 h-14 rounded border border-chaldea-border object-cover bg-slate-900 shrink-0">
+                        <!-- Portrait with Corner NP Badge -->
+                        <div class="relative shrink-0">
+                            <img id="slot-face-{{ forloop.counter }}" 
+                                 src="{{ slot.servant.face_url }}" 
+                                 alt="{{ slot.servant.name }}" 
+                                 class="w-14 h-14 rounded border border-chaldea-border object-cover bg-slate-900 shrink-0">
+                            
+                            <span id="slot-np-badge-{{ forloop.counter }}" 
+                                  class="absolute -bottom-1 -right-1 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded border shadow 
+                                  {% if slot.servant.np_card == 'Buster' %}bg-red-950/90 text-red-400 border-red-500/60
+                                  {% elif slot.servant.np_card == 'Arts' %}bg-sky-950/90 text-sky-400 border-sky-500/60
+                                  {% elif slot.servant.np_card == 'Quick' %}bg-emerald-950/90 text-emerald-400 border-emerald-500/60
+                                  {% else %}bg-slate-900 text-slate-400 border-slate-700{% endif %}">
+                                {{ slot.servant.np_card|default:"Buster"|upper }}
+                            </span>
+                        </div>
                         
                         <div class="flex-1 min-w-0 relative">
                             <input type="hidden" name="slot{{ forloop.counter }}" id="slotInput{{ forloop.counter }}" value="{{ slot.servant.collection_no }}">
@@ -67,19 +79,28 @@
                                          data-name="{{ s.name|lower }}"
                                          data-class="{{ s.class_name|lower }}"
                                          data-id="{{ s.collection_no }}"
-                                         onclick="selectServantForSlot('{{ forloop.parentloop.counter }}', '{{ s.collection_no }}', '{{ s.name|escapejs }}', '{{ s.class_name|escapejs }}', '{{ s.face_url|escapejs }}', {{ s.atk_max }})">
+                                         onclick="selectServantForSlot('{{ forloop.parentloop.counter }}', '{{ s.collection_no }}', '{{ s.name|escapejs }}', '{{ s.class_name|escapejs }}', '{{ s.face_url|escapejs }}', {{ s.atk_max }}, '{{ s.np_card|default:'Buster'|escapejs }}')">
                                         <img src="{{ s.face_url }}" class="w-7 h-7 rounded border border-chaldea-border object-cover bg-slate-900 shrink-0">
                                         <div class="min-w-0 flex-1">
                                             <div class="text-[11px] font-tech text-slate-200 truncate leading-tight">{{ s.name }}</div>
-                                            <div class="text-[9px] font-mono text-slate-500">No.{{ s.collection_no }} &bull; {{ s.class_name }}</div>
+                                            <div class="text-[9px] font-mono text-slate-500">
+                                                No.{{ s.collection_no }} &bull; {{ s.class_name }} &bull; 
+                                                <span class="{% if s.np_card == 'Buster' %}text-red-400{% elif s.np_card == 'Arts' %}text-sky-400{% elif s.np_card == 'Quick' %}text-emerald-400{% else %}text-slate-400{% endif %}">
+                                                    {{ s.np_card|default:'Buster' }}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                     {% endfor %}
                                 </div>
                             </div>
 
-                            <div id="slot-meta-{{ forloop.counter }}" class="text-[10px] font-mono text-slate-400 mt-1">
-                                ATK {{ slot.servant.atk_max }} | {{ slot.servant.class_name }}
+                            <!-- Subtitle Row with ATK, Class, and NP Tag -->
+                            <div id="slot-meta-{{ forloop.counter }}" class="text-[10px] font-mono text-slate-400 mt-1 flex items-center justify-between">
+                                <span id="slot-meta-stats-{{ forloop.counter }}">ATK {{ slot.servant.atk_max }} | {{ slot.servant.class_name }}</span>
+                                <span id="slot-np-tag-{{ forloop.counter }}" class="font-bold {% if slot.servant.np_card == 'Buster' %}text-red-400{% elif slot.servant.np_card == 'Arts' %}text-sky-400{% elif slot.servant.np_card == 'Quick' %}text-emerald-400{% else %}text-slate-400{% endif %}">
+                                    NP: {{ slot.servant.np_card|default:"Buster" }}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -153,7 +174,9 @@
                 <span id="buff-atk" class="text-base font-mono font-bold text-slate-100">+{{ analysis.buffs.atk_pct }}%</span>
             </div>
             <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded">
-                <span class="block text-[10px] font-tech text-slate-400">CARD PERFORMANCE</span>
+                <span class="block text-[10px] font-tech text-slate-400">
+                    CARD PERFORMANCE (<span id="buff-card-type" class="text-chaldea-cyan uppercase font-bold">{{ analysis.buffs.card_type }}</span>)
+                </span>
                 <span id="buff-card" class="text-base font-mono font-bold text-chaldea-cyan">+{{ analysis.buffs.card_pct }}%</span>
             </div>
             <div class="p-3 bg-[#0a0e17] border border-chaldea-border rounded">
@@ -173,6 +196,31 @@
 </div>
 
 <script>
+// Card Color Styling Dictionary
+function getCardStyle(cardType) {
+    const card = (cardType || 'Buster').toLowerCase();
+    if (card === 'buster') {
+        return {
+            badgeClass: "absolute -bottom-1 -right-1 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded border shadow bg-red-950/90 text-red-400 border-red-500/60",
+            textClass: "font-bold text-red-400"
+        };
+    } else if (card === 'arts') {
+        return {
+            badgeClass: "absolute -bottom-1 -right-1 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded border shadow bg-sky-950/90 text-sky-400 border-sky-500/60",
+            textClass: "font-bold text-sky-400"
+        };
+    } else if (card === 'quick') {
+        return {
+            badgeClass: "absolute -bottom-1 -right-1 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded border shadow bg-emerald-950/90 text-emerald-400 border-emerald-500/60",
+            textClass: "font-bold text-emerald-400"
+        };
+    }
+    return {
+        badgeClass: "absolute -bottom-1 -right-1 font-mono text-[9px] font-bold px-1.5 py-0.2 rounded border shadow bg-slate-900 text-slate-400 border-slate-700",
+        textClass: "font-bold text-slate-400"
+    };
+}
+
 // Toggle Combobox
 function toggleSlotDropdown(slotNum) {
     const dropdown = document.getElementById(`slotDropdown${slotNum}`);
@@ -208,18 +256,29 @@ function filterSlotList(slotNum) {
 }
 
 // Select Servant Without Reload
-function selectServantForSlot(slotNum, collectionNo, name, className, faceUrl, atkMax) {
+function selectServantForSlot(slotNum, collectionNo, name, className, faceUrl, atkMax, cardType) {
     document.getElementById(`slotInput${slotNum}`).value = collectionNo;
     
     // Update Header Display Immediately
     document.getElementById(`slot-face-${slotNum}`).src = faceUrl;
     document.getElementById(`slotBtnLabel${slotNum}`).innerText = `[${className.substring(0, 3).toUpperCase()}] ${name}`;
-    document.getElementById(`slot-meta-${slotNum}`).innerText = `ATK ${atkMax} | ${className}`;
+    document.getElementById(`slot-meta-stats-${slotNum}`).innerText = `ATK ${atkMax} | ${className}`;
 
-    // Close Dropdown
+    // Update NP badges
+    const styles = getCardStyle(cardType);
+    const badge = document.getElementById(`slot-np-badge-${slotNum}`);
+    if (badge) {
+        badge.className = styles.badgeClass;
+        badge.innerText = (cardType || 'BUSTER').toUpperCase();
+    }
+    const tag = document.getElementById(`slot-np-tag-${slotNum}`);
+    if (tag) {
+        tag.className = styles.textClass;
+        tag.innerText = `NP: ${cardType || 'Buster'}`;
+    }
+
+    // Close Dropdown & Sync
     document.getElementById(`slotDropdown${slotNum}`).classList.add('hidden');
-
-    // Sync Telemetry
     syncMatrixTelemetry();
 }
 
@@ -253,6 +312,7 @@ async function syncMatrixTelemetry() {
 
         // Update Slot Cards
         data.slots.forEach((slot, idx) => {
+            const slotNum = idx + 1;
             const isCarry = (idx === activeDpsSlot);
 
             // Card highlight & Carry badge
@@ -270,6 +330,21 @@ async function syncMatrixTelemetry() {
                 badge.classList.add('hidden');
                 roleBtn.className = "w-full font-tech text-[10px] py-1.5 rounded border border-chaldea-border text-slate-400 hover:text-chaldea-cyan hover:border-chaldea-cyan/40 transition";
                 roleBtn.innerText = "TARGET BUFFS TO THIS SLOT";
+            }
+
+            // Sync NP badges
+            if (slot.np_card) {
+                const styles = getCardStyle(slot.np_card);
+                const badgeEl = document.getElementById(`slot-np-badge-${slotNum}`);
+                if (badgeEl) {
+                    badgeEl.className = styles.badgeClass;
+                    badgeEl.innerText = slot.np_card.toUpperCase();
+                }
+                const tagEl = document.getElementById(`slot-np-tag-${slotNum}`);
+                if (tagEl) {
+                    tagEl.className = styles.textClass;
+                    tagEl.innerText = `NP: ${slot.np_card}`;
+                }
             }
 
             // Gauges
@@ -294,7 +369,7 @@ async function syncMatrixTelemetry() {
             document.getElementById(`stat-team-${idx}`).innerText = `+${slot.party_received + slot.target_received}%`;
 
             // Append Checkbox Color Sync
-            const appBadge = document.getElementById(`app-badge-${idx + 1}`);
+            const appBadge = document.getElementById(`app-badge-${slotNum}`);
             if (appBadge) {
                 appBadge.className = slot.append_np > 0 ? "text-[10px] font-mono font-bold text-chaldea-cyan" : "text-[10px] font-mono font-bold text-slate-500";
             }
@@ -302,6 +377,7 @@ async function syncMatrixTelemetry() {
 
         // Update Steroid Curve Matrix
         document.getElementById('buff-atk').innerText = `+${data.buffs.atk_pct}%`;
+        document.getElementById('buff-card-type').innerText = data.buffs.card_type;
         document.getElementById('buff-card').innerText = `+${data.buffs.card_pct}%`;
         document.getElementById('buff-np').innerText = `+${data.buffs.np_pct}%`;
         document.getElementById('buff-multiplier').innerText = `${data.buffs.multiplier}x`;
