@@ -34,6 +34,7 @@ Chaldea OS is a production-grade tactical dashboard and telemetry comparison sui
 
 ## Repository Architecture
 
+```text
 chaldea_os/
 ├── .github/workflows/
 │   └── atlas_sync.yml        # Weekly automated DB sync & auto-commit pipeline
@@ -50,6 +51,8 @@ chaldea_os/
 ├── Dockerfile                # Multi-stage production container setup
 ├── manage.py
 └── requirements.txt
+```
+
 Quickstart & Local Setup
 Prerequisites
 Python 3.11+
