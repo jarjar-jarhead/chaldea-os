@@ -55,10 +55,9 @@ chaldea_os/
 
 Quickstart & Local Setup
 Prerequisites
+
 Python 3.11+
-
 Git
-
 Google Gemini API Key
 
 1. Clone & Setup Virtual Environment
